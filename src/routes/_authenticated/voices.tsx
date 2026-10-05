@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Mic, Play, Square, Trash2, Waveform } from "lucide-react";
+import { AudioWaveform, Mic, Play, Square, Trash2 } from "lucide-react";
 import { cloneVoice, deleteClonedVoice, narrate, narrateWithClonedVoice } from "@/lib/studio.functions";
 import { VOICES } from "@/lib/catalog";
 import { supabase } from "@/integrations/supabase/client";
@@ -139,7 +139,7 @@ function Voices() {
       <PageHeader eyebrow="Voice studio" title="Narrators with real character" subtitle="Choose a studio narrator or create a private voice with the speaker’s permission." />
       <section className="voice-clone-panel mb-12 grid gap-8 border-y py-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div>
-          <div className="flex items-center gap-3"><span className="voice-icon"><Waveform /></span><div><h2 className="text-xl font-semibold">Create a consented voice</h2><p className="text-sm text-muted-foreground">A clear 60–120 second recording gives the best result.</p></div></div>
+          <div className="flex items-center gap-3"><span className="voice-icon"><AudioWaveform /></span><div><h2 className="text-xl font-semibold">Create a consented voice</h2><p className="text-sm text-muted-foreground">A clear 60–120 second recording gives the best result.</p></div></div>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <div className="space-y-2"><Label htmlFor="voice-name">Voice name</Label><Input id="voice-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Grandma Rose" /></div>
             <div className="space-y-2"><Label htmlFor="voice-file">Or upload a recording</Label><Input id="voice-file" type="file" accept="audio/*" onChange={(event) => setSample(event.target.files?.[0] ?? null)} /></div>
