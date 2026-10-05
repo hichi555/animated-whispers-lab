@@ -90,13 +90,13 @@
   --chart-3: oklch(0.65 0.12 160);
   --chart-4: oklch(0.68 0.14 30);
   --chart-5: oklch(0.55 0.1 280);
-  --sidebar: oklch(0.21 0.035 240);
-  --sidebar-foreground: oklch(0.9 0.012 85);
-  --sidebar-primary: oklch(0.8 0.13 72);
-  --sidebar-primary-foreground: oklch(0.22 0.04 60);
-  --sidebar-accent: oklch(0.28 0.04 240);
-  --sidebar-accent-foreground: oklch(0.97 0.01 85);
-  --sidebar-border: oklch(0.3 0.03 240);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.22 0.03 250);
+  --sidebar-primary: oklch(0.38 0.08 190);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.95 0.015 190);
+  --sidebar-accent-foreground: oklch(0.3 0.06 195);
+  --sidebar-border: oklch(0.9 0.008 220);
   --sidebar-ring: oklch(0.8 0.13 72);
   --gradient-hero: radial-gradient(1200px 500px at 80% -10%, oklch(0.8 0.13 72 / 0.25), transparent 60%), radial-gradient(900px 500px at 0% 0%, oklch(0.34 0.07 215 / 0.18), transparent 60%);
   --shadow-soft: 0 1px 2px oklch(0.22 0.03 250 / 0.05), 0 12px 32px -12px oklch(0.22 0.03 250 / 0.18);
@@ -158,6 +158,17 @@
 .studio-shell h1, .studio-shell h2, .studio-shell h3 { font-family: var(--font-sans); }
 .studio-shell main { max-width: 1480px; width: 100%; margin-inline: auto; }
 .studio-shell .rounded-2xl { border-radius: 8px; }
+.studio-sidebar { border-right: 1px solid var(--sidebar-border); box-shadow: 8px 0 24px -22px color-mix(in oklch, var(--foreground) 30%, transparent); }
+.voice-icon { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 8px; background: var(--secondary); color: var(--primary); }
+.recording-script { align-self: start; border-left: 3px solid var(--accent); background: var(--card); padding: 20px; box-shadow: var(--shadow-soft); }
+.voice-card { display: flex; min-width: 0; align-items: center; gap: 12px; border: 1px solid var(--border); background: var(--card); padding: 14px; }
+.voice-avatar { display: grid; width: 40px; height: 40px; flex: none; place-items: center; border-radius: 50%; background: var(--secondary); color: var(--primary); font-weight: 700; }
+.production-desk { display: grid; align-items: center; gap: 24px; }
+.production-steps { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
+.production-steps div { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--muted-foreground); }
+.production-steps svg { width: 16px; height: 16px; color: var(--primary); }
+.production-card, .character-workbench { border-radius: 8px; box-shadow: var(--shadow-soft); }
+@media(min-width: 1100px) { .production-desk { grid-template-columns: minmax(0,1fr) 360px auto; } }
 .studio-topbar { position: sticky; top: 0; z-index: 30; height: 68px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 32px; border-bottom: 1px solid var(--border); background: var(--card); }
 .studio-mobile-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--card); }
 .studio-mobile-nav a { display: flex; min-width: 0; gap: 6px; align-items: center; justify-content: center; padding: 8px 4px; font-size: 12px; border-radius: 6px; }

@@ -18,10 +18,10 @@
 - [x] Two-sided opening, reversible page turns, full-image fit, contents, text sizing and saved reading position
 
 ## Current build focus
-- [ ] Import and stabilize the uploaded CiliaTales studio
-- [ ] Add consent-based ElevenLabs voice cloning and narration
-- [ ] Add parent/teacher reference-image uploads
-- [ ] Upgrade character creator into a visual character design workspace
-- [ ] Replace the puppy showcase with a professional production workflow
-- [ ] Polish the white studio navigation and creation experience
+- [x] Import and stabilize the uploaded CiliaTales studio
+- [x] Add consent-based ElevenLabs voice cloning and narration
+- [x] Add parent/teacher reference-image uploads
+- [x] Upgrade character creator into a visual character design workspace
+- [x] Replace the puppy showcase with a professional production workflow
+- [x] Polish the white studio navigation and creation experience
 - [ ] Validate build and core signed-in flows
