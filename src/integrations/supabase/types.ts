@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.18"
   }
   public: {
     Tables: {
@@ -19,7 +19,11 @@ export type Database = {
           age: string | null
           appearance: string | null
           art_style: string
+          body_shape: string | null
           created_at: string
+          expression: string | null
+          face_shape: string | null
+          hair_style: string | null
           id: string
           kind: string
           name: string
@@ -27,14 +31,21 @@ export type Database = {
           palette: string | null
           personality: string | null
           portrait_url: string | null
+          reference_url: string | null
+          silhouette: string | null
           updated_at: string
           user_id: string
+          voice_profile_id: string | null
         }
         Insert: {
           age?: string | null
           appearance?: string | null
           art_style?: string
+          body_shape?: string | null
           created_at?: string
+          expression?: string | null
+          face_shape?: string | null
+          hair_style?: string | null
           id?: string
           kind?: string
           name: string
@@ -42,14 +53,21 @@ export type Database = {
           palette?: string | null
           personality?: string | null
           portrait_url?: string | null
+          reference_url?: string | null
+          silhouette?: string | null
           updated_at?: string
           user_id?: string
+          voice_profile_id?: string | null
         }
         Update: {
           age?: string | null
           appearance?: string | null
           art_style?: string
+          body_shape?: string | null
           created_at?: string
+          expression?: string | null
+          face_shape?: string | null
+          hair_style?: string | null
           id?: string
           kind?: string
           name?: string
@@ -57,10 +75,21 @@ export type Database = {
           palette?: string | null
           personality?: string | null
           portrait_url?: string | null
+          reference_url?: string | null
+          silhouette?: string | null
           updated_at?: string
           user_id?: string
+          voice_profile_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "characters_voice_profile_id_fkey"
+            columns: ["voice_profile_id"]
+            isOneToOne: false
+            referencedRelation: "voice_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -96,6 +125,7 @@ export type Database = {
           updated_at: string
           user_id: string
           voice: string
+          voice_profile_id: string | null
         }
         Insert: {
           age_range?: string
@@ -112,6 +142,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           voice?: string
+          voice_profile_id?: string | null
         }
         Update: {
           age_range?: string
@@ -128,41 +159,68 @@ export type Database = {
           updated_at?: string
           user_id?: string
           voice?: string
+          voice_profile_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stories_voice_profile_id_fkey"
+            columns: ["voice_profile_id"]
+            isOneToOne: false
+            referencedRelation: "voice_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       story_pages: {
         Row: {
           audio_url: string | null
+          camera_motion: string
           created_at: string
+          duration_seconds: number
           id: string
           image_prompt: string | null
           image_url: string | null
+          motion_status: string
+          motion_url: string | null
           page_number: number
+          shot_type: string
           story_id: string
           text: string
+          updated_at: string
           user_id: string
         }
         Insert: {
           audio_url?: string | null
+          camera_motion?: string
           created_at?: string
+          duration_seconds?: number
           id?: string
           image_prompt?: string | null
           image_url?: string | null
+          motion_status?: string
+          motion_url?: string | null
           page_number: number
+          shot_type?: string
           story_id: string
           text?: string
+          updated_at?: string
           user_id?: string
         }
         Update: {
           audio_url?: string | null
+          camera_motion?: string
           created_at?: string
+          duration_seconds?: number
           id?: string
           image_prompt?: string | null
           image_url?: string | null
+          motion_status?: string
+          motion_url?: string | null
           page_number?: number
+          shot_type?: string
           story_id?: string
           text?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -174,6 +232,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      voice_profiles: {
+        Row: {
+          consent_confirmed: boolean
+          consent_text: string | null
+          created_at: string
+          id: string
+          name: string
+          provider: string
+          provider_voice_id: string
+          sample_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consent_confirmed?: boolean
+          consent_text?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          provider?: string
+          provider_voice_id: string
+          sample_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          consent_confirmed?: boolean
+          consent_text?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          provider?: string
+          provider_voice_id?: string
+          sample_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

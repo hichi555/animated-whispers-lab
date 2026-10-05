@@ -36,12 +36,17 @@ function NewStory() {
   const [tone, setTone] = useState<string | null>("Cozy");
   const [style, setStyle] = useState<string>(ART_STYLES[0].id);
   const [voice, setVoice] = useState<string>(VOICES[0].id);
+  const [voiceProfileId, setVoiceProfileId] = useState<string | null>(null);
   const [pages, setPages] = useState(8);
   const [cast, setCast] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const { data: chars = [] } = useQuery({
     queryKey: ["characters"],
     queryFn: async () => (await supabase.from("characters").select("*").order("created_at")).data ?? [],
+  });
+  const { data: customVoices = [] } = useQuery({
+    queryKey: ["voice-profiles"],
+    queryFn: async () => (await supabase.from("voice_profiles").select("id,name").order("created_at")).data ?? [],
   });
 
   async function create() {
@@ -59,7 +64,7 @@ function NewStory() {
         },
       });
       const { data: story, error } = await supabase.from("stories").insert({
-        user_id: user.id, title: out.title, idea, age_range: age, theme, tone, art_style: style, voice, character_ids: cast, status: "draft",
+        user_id: user.id, title: out.title, idea, age_range: age, theme, tone, art_style: style, voice, voice_profile_id: voiceProfileId, character_ids: cast, status: "draft",
       }).select().single();
       if (error) throw error;
       const { error: pe } = await supabase.from("story_pages").insert(
@@ -122,7 +127,7 @@ function NewStory() {
             {chars.map((c) => <Chip key={c.id} on={cast.includes(c.id)} onClick={() => setCast(cast.includes(c.id) ? cast.filter((x) => x !== c.id) : [...cast, c.id])}>{c.name}</Chip>)}
             {!chars.length && <p className="text-sm text-muted-foreground">No characters yet — we'll invent some.</p>}
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">{VOICES.map((v) => <Chip key={v.id} on={voice === v.id} onClick={() => setVoice(v.id)}>{v.id} · {v.mood}</Chip>)}</div>
+          <div className="mt-4 flex flex-wrap gap-2">{VOICES.map((v) => <Chip key={v.id} on={!voiceProfileId && voice === v.id} onClick={() => { setVoice(v.id); setVoiceProfileId(null); }}>{v.id} · {v.mood}</Chip>)}{customVoices.map((v) => <Chip key={v.id} on={voiceProfileId === v.id} onClick={() => { setVoice(v.name); setVoiceProfileId(v.id); }}>{v.name} · Private</Chip>)}</div>
           <div className="mt-4 flex items-center gap-3 text-sm">
             Pages <input type="range" min={4} max={16} value={pages} onChange={(e) => setPages(+e.target.value)} className="accent-primary" /> <b>{pages}</b>
           </div>

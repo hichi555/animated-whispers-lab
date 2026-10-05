@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { UserRound, Trash2 } from "lucide-react";
+import { UserRound, Trash2, Upload, WandSparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/use-auth";
 import { generateImage } from "@/lib/studio.functions";
 import { ART_STYLES, CHARACTER_KINDS } from "@/lib/catalog";
-import { uploadBase64, useMediaUrl } from "@/lib/media";
+import { uploadBase64, uploadFile, useMediaUrl } from "@/lib/media";
 import reference from "@/assets/character-lock.asset.json";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -21,13 +21,15 @@ export const Route = createFileRoute("/_authenticated/characters")({
   component: Characters,
 });
 
-const EMPTY = { name: "", kind: CHARACTER_KINDS[0] as string, age: "", appearance: "", outfit: "", personality: "", palette: "", art_style: ART_STYLES[0].id as string };
+const EMPTY = { name: "", kind: CHARACTER_KINDS[0] as string, age: "", appearance: "", outfit: "", personality: "", palette: "", art_style: ART_STYLES[0].id as string, face_shape: "Soft oval", body_shape: "Balanced", hair_style: "", expression: "Warm smile", silhouette: "Natural" };
 
 function Characters() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const img = useServerFn(generateImage);
   const [f, setF] = useState(EMPTY);
+  const [referenceFile, setReferenceFile] = useState<File | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const { data = [] } = useQuery({
     queryKey: ["characters"],
@@ -40,14 +42,17 @@ function Characters() {
     setBusy(true);
     try {
       let portrait_url: string | null = null;
+      let reference_url: string | null = null;
+      if (referenceFile) reference_url = await uploadFile(user.id, "character-references", referenceFile);
       try {
-        const desc = [f.name, f.kind, f.age && `age ${f.age}`, f.appearance, f.outfit, f.palette && `colors ${f.palette}`, f.personality].filter(Boolean).join(", ");
+        const desc = [f.name, f.kind, f.age && `age ${f.age}`, f.face_shape && `${f.face_shape} face`, f.body_shape && `${f.body_shape} build`, f.hair_style, f.expression, f.silhouette && `${f.silhouette} silhouette`, f.appearance, f.outfit, f.palette && `fixed colors ${f.palette}`, f.personality, referenceFile && "use the uploaded portrait as the identity reference"].filter(Boolean).join(", ");
         const { b64 } = await img({ data: { prompt: desc, style: f.art_style, portrait: true } });
         portrait_url = await uploadBase64(user.id, "characters", b64);
       } catch (err) { toast.error(`Portrait failed: ${(err as Error).message}`); }
-      const { error } = await supabase.from("characters").insert({ ...f, user_id: user.id, portrait_url });
+      const { error } = await supabase.from("characters").insert({ ...f, user_id: user.id, portrait_url, reference_url });
       if (error) throw error;
       setF(EMPTY);
+      setReferenceFile(null);
       qc.invalidateQueries({ queryKey: ["characters"] });
       toast.success("Character added to your cast");
     } catch (err) { toast.error((err as Error).message); } finally { setBusy(false); }
@@ -59,15 +64,18 @@ function Characters() {
 
   return (
     <div>
-      <PageHeader eyebrow="Library" title="Character builder" subtitle="Design a recurring cast. Define their appearance, outfit and colors for a recurring cast." />
+      <PageHeader eyebrow="Character atelier" title="Shape a cast readers remember" subtitle="Define identity, silhouette and wardrobe, then generate a reusable character portrait." />
       <div className="mb-8 flex flex-wrap items-center gap-6 border-y py-5"><img src={reference.url} alt="Character design reference showing the same child and fox across multiple poses" className="h-36 w-64 rounded-lg object-contain"/><div><h2 className="font-semibold">One character. Every chapter.</h2><p className="mt-2 max-w-md text-sm text-muted-foreground">Appearance · outfit · color palette</p></div></div>
       <div className="grid gap-8 lg:grid-cols-[380px_1fr]">
-        <form onSubmit={create} className="space-y-3 rounded-2xl border bg-card p-6">
+        <form onSubmit={create} className="character-workbench space-y-4 border bg-card p-6">
           <div className="space-y-1.5"><Label>Name</Label><Input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></div>
           <div className="space-y-1.5"><Label>Kind</Label>
             <select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={f.kind} onChange={(e) => setF({ ...f, kind: e.target.value })}>{CHARACTER_KINDS.map((k) => <option key={k}>{k}</option>)}</select>
           </div>
           {field("age", "Age", "7")}
+          <div className="grid grid-cols-2 gap-3">{field("face_shape", "Face", "Soft oval")}{field("body_shape", "Build", "Small and sturdy")}</div>
+          <div className="grid grid-cols-2 gap-3">{field("hair_style", "Hair or features", "Long black braids")}{field("expression", "Expression", "Bright, curious")}</div>
+          {field("silhouette", "Silhouette", "Oversized coat, small boots")}
           {field("appearance", "Appearance", "curly red hair, freckles")}
           {field("outfit", "Outfit", "yellow raincoat, green boots")}
           {field("palette", "Colors", "mustard, teal")}
@@ -75,7 +83,9 @@ function Characters() {
           <div className="space-y-1.5"><Label>Art style</Label>
             <select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={f.art_style} onChange={(e) => setF({ ...f, art_style: e.target.value })}>{ART_STYLES.map((s) => <option key={s.id}>{s.id}</option>)}</select>
           </div>
-          <Button type="submit" className="w-full" disabled={busy}>{busy ? "Drawing portrait…" : "Create character"}</Button>
+          <input ref={fileInput} className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setReferenceFile(event.target.files?.[0] ?? null)}/>
+          <Button type="button" variant="outline" className="w-full" onClick={() => fileInput.current?.click()}><Upload/>{referenceFile ? referenceFile.name : "Add identity reference"}</Button>
+          <Button type="submit" className="w-full" disabled={busy}><WandSparkles/>{busy ? "Building character…" : "Create character sheet"}</Button>
         </form>
         <div className="grid content-start gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {data.map((c) => <CharCard key={c.id} c={c} />)}
@@ -89,13 +99,14 @@ function Characters() {
 function CharCard({ c }: { c: Tables<"characters"> }) {
   const url = useMediaUrl(c.portrait_url);
   const qc = useQueryClient();
+  const { data: voices = [] } = useQuery({ queryKey: ["voice-profiles"], queryFn: async () => (await supabase.from("voice_profiles").select("id,name").order("name")).data ?? [] });
   return (
     <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
       <div className="grid aspect-square place-items-center bg-secondary">
         {url ? <img src={url} alt={c.name} className="h-full w-full object-cover" /> : <UserRound className="h-10 w-10 text-muted-foreground" />}
       </div>
       <div className="flex items-start justify-between gap-2 p-4">
-        <div><p className="font-display text-lg">{c.name}</p><p className="text-xs text-muted-foreground">{c.kind}{c.personality ? ` · ${c.personality}` : ""}</p></div>
+        <div className="min-w-0 flex-1"><p className="font-display text-lg">{c.name}</p><p className="text-xs text-muted-foreground">{c.kind}{c.personality ? ` · ${c.personality}` : ""}</p><Label htmlFor={`voice-${c.id}`} className="mt-4 block text-xs">Character voice</Label><select id={`voice-${c.id}`} className="mt-1 h-9 w-full rounded-md border bg-background px-2 text-sm" value={c.voice_profile_id ?? ""} onChange={async (event) => { const { error } = await supabase.from("characters").update({ voice_profile_id: event.target.value || null }).eq("id", c.id); if (error) toast.error(error.message); else { await qc.invalidateQueries({ queryKey: ["characters"] }); toast.success("Character voice updated"); } }}><option value="">Story narrator</option>{voices.map((voice) => <option key={voice.id} value={voice.id}>{voice.name}</option>)}</select></div>
         <Button variant="ghost" size="icon" aria-label="Delete" onClick={async () => { await supabase.from("characters").delete().eq("id", c.id); qc.invalidateQueries({ queryKey: ["characters"] }); }} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
       </div>
     </div>

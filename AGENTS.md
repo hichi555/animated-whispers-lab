@@ -17,3 +17,4 @@
 - Reader position is stored per story locally; never persist signed URLs or narration media in browser storage, to keep private media access scoped.
 - Storyboard scenes use the same story_pages records as the book editor; script changes invalidate narration to prevent stale spoken content.
 - Browser video export produces silent 1080p WebM from private illustrations; print uses a dedicated paginated layout without storing signed URLs.
+- Consented custom voices are created and synthesized through ElevenLabs on authenticated server functions; provider IDs are ownership-checked before use.
