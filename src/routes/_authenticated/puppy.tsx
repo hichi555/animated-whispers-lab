@@ -1,0 +1,10 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Heart, PenTool, UserRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import puppy from "@/assets/puppy.asset.json";
+import { PageHeader } from "@/components/PageHeader";
+export const Route = createFileRoute("/_authenticated/puppy")({
+  head: () => ({ meta: [{title: "A place to belong — CyliaTales"}, {name: "description", content: "A puppy story about kindness, patience and belonging, featuring your original character artwork."}, {property: "og:title", content: "A place to belong — CyliaTales"}, {property: "og:description", content: "An original puppy story about finding a home."}, {property: "og:type", content: "website"}, {name: "twitter:card", content: "summary_large_image"}] }),
+  component: PuppyPage,
+});
+function PuppyPage() { return <div><PageHeader eyebrow="Character spotlight" title="A place to belong" subtitle="A little puppy. A patient heart. A place called home."/><div className="grid items-center gap-10 lg:grid-cols-2"><img src={puppy.url} alt="Golden puppy sitting on a cushioned wooden bench" className="w-full rounded-lg object-contain"/><div><p className="mb-4 flex items-center gap-2 text-sm font-semibold text-primary"><Heart className="h-4 w-4"/> Kindness & belonging</p><h2 className="text-3xl font-semibold leading-tight">The smallest seat can hold the biggest hope.</h2><p className="mt-6 font-display text-xl leading-relaxed">Every morning, the little puppy sat on the wooden bench. He did not know who might come. He only knew there was room beside him.</p><p className="mt-4 font-display text-xl leading-relaxed">Then someone stopped, sat down, and stayed. For the first time, waiting felt a little like belonging.</p><div className="mt-8 flex flex-wrap gap-3"><Button asChild><Link to="/stories/new"><PenTool/> Write a puppy story</Link></Button><Button asChild variant="outline"><Link to="/characters"><UserRound/> Create your puppy</Link></Button></div></div></div></div>; }

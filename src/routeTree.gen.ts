@@ -10,33 +10,155 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedCharactersRouteImport } from './routes/_authenticated/characters'
+import { Route as AuthenticatedLabsRouteImport } from './routes/_authenticated/labs'
+import { Route as AuthenticatedPuppyRouteImport } from './routes/_authenticated/puppy'
+import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
+import { Route as AuthenticatedVoicesRouteImport } from './routes/_authenticated/voices'
+import { Route as AuthenticatedStoriesIndexRouteImport } from './routes/_authenticated/stories.index'
+import { Route as AuthenticatedStoriesIdRouteImport } from './routes/_authenticated/stories.$id'
+import { Route as AuthenticatedStoriesNewRouteImport } from './routes/_authenticated/stories.new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedCharactersRoute = AuthenticatedCharactersRouteImport.update({
+  id: '/characters',
+  path: '/characters',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLabsRoute = AuthenticatedLabsRouteImport.update({
+  id: '/labs',
+  path: '/labs',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPuppyRoute = AuthenticatedPuppyRouteImport.update({
+  id: '/puppy',
+  path: '/puppy',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedStudioRoute = AuthenticatedStudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedVoicesRoute = AuthenticatedVoicesRouteImport.update({
+  id: '/voices',
+  path: '/voices',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedStoriesIndexRoute =
+  AuthenticatedStoriesIndexRouteImport.update({
+    id: '/stories/',
+    path: '/stories/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStoriesIdRoute = AuthenticatedStoriesIdRouteImport.update({
+  id: '/stories/$id',
+  path: '/stories/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedStoriesNewRoute = AuthenticatedStoriesNewRouteImport.update({
+  id: '/stories/new',
+  path: '/stories/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/characters': typeof AuthenticatedCharactersRoute
+  '/labs': typeof AuthenticatedLabsRoute
+  '/puppy': typeof AuthenticatedPuppyRoute
+  '/studio': typeof AuthenticatedStudioRoute
+  '/voices': typeof AuthenticatedVoicesRoute
+  '/stories/$id': typeof AuthenticatedStoriesIdRoute
+  '/stories/new': typeof AuthenticatedStoriesNewRoute
+  '/stories/': typeof AuthenticatedStoriesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/characters': typeof AuthenticatedCharactersRoute
+  '/labs': typeof AuthenticatedLabsRoute
+  '/puppy': typeof AuthenticatedPuppyRoute
+  '/studio': typeof AuthenticatedStudioRoute
+  '/voices': typeof AuthenticatedVoicesRoute
+  '/stories/$id': typeof AuthenticatedStoriesIdRoute
+  '/stories/new': typeof AuthenticatedStoriesNewRoute
+  '/stories': typeof AuthenticatedStoriesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/characters': typeof AuthenticatedCharactersRoute
+  '/_authenticated/labs': typeof AuthenticatedLabsRoute
+  '/_authenticated/puppy': typeof AuthenticatedPuppyRoute
+  '/_authenticated/studio': typeof AuthenticatedStudioRoute
+  '/_authenticated/voices': typeof AuthenticatedVoicesRoute
+  '/_authenticated/stories/$id': typeof AuthenticatedStoriesIdRoute
+  '/_authenticated/stories/new': typeof AuthenticatedStoriesNewRoute
+  '/_authenticated/stories/': typeof AuthenticatedStoriesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/characters'
+    | '/labs'
+    | '/puppy'
+    | '/studio'
+    | '/voices'
+    | '/stories/$id'
+    | '/stories/new'
+    | '/stories/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/characters'
+    | '/labs'
+    | '/puppy'
+    | '/studio'
+    | '/voices'
+    | '/stories/$id'
+    | '/stories/new'
+    | '/stories'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/characters'
+    | '/_authenticated/labs'
+    | '/_authenticated/puppy'
+    | '/_authenticated/studio'
+    | '/_authenticated/voices'
+    | '/_authenticated/stories/$id'
+    | '/_authenticated/stories/new'
+    | '/_authenticated/stories/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +170,108 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/characters': {
+      id: '/_authenticated/characters'
+      path: '/characters'
+      fullPath: '/characters'
+      preLoaderRoute: typeof AuthenticatedCharactersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/labs': {
+      id: '/_authenticated/labs'
+      path: '/labs'
+      fullPath: '/labs'
+      preLoaderRoute: typeof AuthenticatedLabsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/puppy': {
+      id: '/_authenticated/puppy'
+      path: '/puppy'
+      fullPath: '/puppy'
+      preLoaderRoute: typeof AuthenticatedPuppyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/studio': {
+      id: '/_authenticated/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof AuthenticatedStudioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/voices': {
+      id: '/_authenticated/voices'
+      path: '/voices'
+      fullPath: '/voices'
+      preLoaderRoute: typeof AuthenticatedVoicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/stories/': {
+      id: '/_authenticated/stories/'
+      path: '/stories'
+      fullPath: '/stories/'
+      preLoaderRoute: typeof AuthenticatedStoriesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/stories/$id': {
+      id: '/_authenticated/stories/$id'
+      path: '/stories/$id'
+      fullPath: '/stories/$id'
+      preLoaderRoute: typeof AuthenticatedStoriesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/stories/new': {
+      id: '/_authenticated/stories/new'
+      path: '/stories/new'
+      fullPath: '/stories/new'
+      preLoaderRoute: typeof AuthenticatedStoriesNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCharactersRoute: typeof AuthenticatedCharactersRoute
+  AuthenticatedLabsRoute: typeof AuthenticatedLabsRoute
+  AuthenticatedPuppyRoute: typeof AuthenticatedPuppyRoute
+  AuthenticatedStudioRoute: typeof AuthenticatedStudioRoute
+  AuthenticatedVoicesRoute: typeof AuthenticatedVoicesRoute
+  AuthenticatedStoriesIdRoute: typeof AuthenticatedStoriesIdRoute
+  AuthenticatedStoriesNewRoute: typeof AuthenticatedStoriesNewRoute
+  AuthenticatedStoriesIndexRoute: typeof AuthenticatedStoriesIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCharactersRoute: AuthenticatedCharactersRoute,
+  AuthenticatedLabsRoute: AuthenticatedLabsRoute,
+  AuthenticatedPuppyRoute: AuthenticatedPuppyRoute,
+  AuthenticatedStudioRoute: AuthenticatedStudioRoute,
+  AuthenticatedVoicesRoute: AuthenticatedVoicesRoute,
+  AuthenticatedStoriesIdRoute: AuthenticatedStoriesIdRoute,
+  AuthenticatedStoriesNewRoute: AuthenticatedStoriesNewRoute,
+  AuthenticatedStoriesIndexRoute: AuthenticatedStoriesIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

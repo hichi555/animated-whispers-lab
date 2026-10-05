@@ -59,77 +59,79 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --shadow-soft: var(--shadow-soft);
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --radius: 0.5rem;
+  --background: oklch(0.985 0.006 85);
+  --foreground: oklch(0.22 0.03 250);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: oklch(0.22 0.03 250);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --popover-foreground: oklch(0.22 0.03 250);
+  --primary: oklch(0.34 0.07 215);
+  --primary-foreground: oklch(0.98 0.01 85);
+  --secondary: oklch(0.955 0.012 85);
+  --secondary-foreground: oklch(0.26 0.04 240);
+  --muted: oklch(0.955 0.01 85);
+  --muted-foreground: oklch(0.5 0.025 250);
+  --accent: oklch(0.8 0.13 72);
+  --accent-foreground: oklch(0.25 0.05 60);
+  --destructive: oklch(0.58 0.2 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.91 0.012 85);
+  --input: oklch(0.9 0.012 85);
+  --ring: oklch(0.34 0.07 215);
+  --chart-1: oklch(0.34 0.07 215);
+  --chart-2: oklch(0.8 0.13 72);
+  --chart-3: oklch(0.65 0.12 160);
+  --chart-4: oklch(0.68 0.14 30);
+  --chart-5: oklch(0.55 0.1 280);
+  --sidebar: oklch(0.21 0.035 240);
+  --sidebar-foreground: oklch(0.9 0.012 85);
+  --sidebar-primary: oklch(0.8 0.13 72);
+  --sidebar-primary-foreground: oklch(0.22 0.04 60);
+  --sidebar-accent: oklch(0.28 0.04 240);
+  --sidebar-accent-foreground: oklch(0.97 0.01 85);
+  --sidebar-border: oklch(0.3 0.03 240);
+  --sidebar-ring: oklch(0.8 0.13 72);
+  --gradient-hero: radial-gradient(1200px 500px at 80% -10%, oklch(0.8 0.13 72 / 0.25), transparent 60%), radial-gradient(900px 500px at 0% 0%, oklch(0.34 0.07 215 / 0.18), transparent 60%);
+  --shadow-soft: 0 1px 2px oklch(0.22 0.03 250 / 0.05), 0 12px 32px -12px oklch(0.22 0.03 250 / 0.18);
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --background: oklch(0.18 0.03 245);
+  --foreground: oklch(0.95 0.01 85);
+  --card: oklch(0.22 0.035 245);
+  --card-foreground: oklch(0.95 0.01 85);
+  --popover: oklch(0.22 0.035 245);
+  --popover-foreground: oklch(0.95 0.01 85);
+  --primary: oklch(0.8 0.13 72);
+  --primary-foreground: oklch(0.22 0.04 60);
+  --secondary: oklch(0.27 0.035 245);
+  --secondary-foreground: oklch(0.95 0.01 85);
+  --muted: oklch(0.27 0.035 245);
+  --muted-foreground: oklch(0.7 0.02 250);
+  --accent: oklch(0.8 0.13 72);
+  --accent-foreground: oklch(0.22 0.04 60);
+  --destructive: oklch(0.65 0.19 25);
+  --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --ring: oklch(0.8 0.13 72);
+  --sidebar: oklch(0.16 0.03 245);
+  --sidebar-foreground: oklch(0.9 0.012 85);
+  --sidebar-primary: oklch(0.8 0.13 72);
+  --sidebar-primary-foreground: oklch(0.22 0.04 60);
+  --sidebar-accent: oklch(0.25 0.035 245);
+  --sidebar-accent-foreground: oklch(0.97 0.01 85);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --sidebar-ring: oklch(0.8 0.13 72);
+  --gradient-hero: none;
+  --shadow-soft: 0 12px 32px -12px oklch(0 0 0 / 0.5);
 }
 
 @layer base {
@@ -140,5 +142,68 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
   }
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: 0;
+  }
+}
+
+@utility bg-hero {
+  background-image: var(--gradient-hero);
+}
+
+.studio-shell { --background: oklch(.975 .004 220); --primary: oklch(.42 .085 190); --secondary: oklch(.95 .012 190); --border: oklch(.9 .008 220); }
+.studio-shell h1, .studio-shell h2, .studio-shell h3 { font-family: var(--font-sans); }
+.studio-shell main { max-width: 1480px; width: 100%; margin-inline: auto; }
+.studio-shell .rounded-2xl { border-radius: 8px; }
+.studio-topbar { position: sticky; top: 0; z-index: 30; height: 68px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 32px; border-bottom: 1px solid var(--border); background: var(--card); }
+.studio-mobile-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--card); }
+.studio-mobile-nav a { display: flex; min-width: 0; gap: 6px; align-items: center; justify-content: center; padding: 8px 4px; font-size: 12px; border-radius: 6px; }
+@media(min-width: 768px) { .studio-mobile-nav { display: none; } }
+.story-form-section { border-top: 1px solid var(--border); padding: 24px 0; }
+/* Reader surfaces use the same semantic palette as the studio. */
+.book-reader { --reader-spine: color-mix(in oklch, var(--foreground) 16%, transparent); --reader-shadow: 0 24px 64px -24px color-mix(in oklch, var(--foreground) 32%, transparent); position: fixed; inset: 0; z-index: 60; background: var(--secondary); padding: 24px 32px; display: flex; flex-direction: column; gap: 18px; overflow: auto; outline: none; }
+.reader-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: min(1200px, 100%); margin-inline: auto; }
+.reader-stage { flex: 1; display: grid; align-items: center; width: 100%; perspective: 2200px; padding: 18px 0; }
+.book-spread { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); width: min(1160px, 100%); margin: auto; position: relative; perspective: 2200px; box-shadow: var(--reader-shadow); border: 1px solid var(--border); border-radius: 5px; }
+.book-spread::after { content: ""; position: absolute; inset-block: 0; left: 50%; width: 24px; transform: translateX(-50%); background: linear-gradient(90deg, transparent, var(--reader-spine), transparent); pointer-events: none; z-index: 2; }
+.book-leaf { min-width: 0; min-height: 480px; background: var(--card); display: flex; align-items: center; justify-content: center; backface-visibility: hidden; }
+.book-art { overflow: hidden; padding: 16px; transform-origin: right center; border-radius: 5px 0 0 5px; }
+.book-art img { width: 100%; height: 100%; max-height: 680px; object-fit: contain; display: block; }
+.book-text { flex-direction: column; align-items: stretch; padding: 48px; transform-origin: left center; position: relative; border-radius: 0 5px 5px 0; }
+.reader-prose { flex: 1; display: flex; align-items: center; }
+.reader-prose p { font-family: var(--font-display); line-height: 1.75; white-space: pre-line; overflow-wrap: anywhere; }
+.reader-type-0 p { font-size: 20px; } .reader-type-1 p { font-size: 24px; } .reader-type-2 p { font-size: 28px; }
+.reader-folio { display: block; text-align: center; margin-top: 24px; font-size: 12px; color: var(--muted-foreground); }
+.opening .book-art { animation: reader-open-left .95s cubic-bezier(.22,.7,.2,1) both; }
+.opening .book-text { animation: reader-open-right .95s cubic-bezier(.22,.7,.2,1) both; }
+.next .book-text { animation: reader-open-right .6s cubic-bezier(.22,.7,.2,1) both; }
+.previous .book-art { animation: reader-open-left .6s cubic-bezier(.22,.7,.2,1) both; }
+@keyframes reader-open-left { from { transform: rotateY(78deg); opacity: .2; } to { transform: rotateY(0); opacity: 1; } }
+@keyframes reader-open-right { from { transform: rotateY(-78deg); opacity: .2; } to { transform: rotateY(0); opacity: 1; } }
+.reader-footer { width: min(1160px, 100%); margin: auto; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
+.reader-end { text-align: right; }
+.reader-contents { display: flex; flex-wrap: wrap; gap: 8px; width: min(1160px, 100%); margin-inline: auto; }
+@media(max-width: 767px) { .studio-topbar { padding: 12px 20px; } .book-reader { padding: 16px 12px; gap: 12px; } .reader-header { gap: 8px; } .reader-header h2 { max-width: 210px; font-size: 16px; } .reader-stage { padding: 8px 0; } .book-leaf { min-height: 300px; } .book-art { padding: 6px; } .book-art img { max-height: 460px; } .book-text { padding: 16px 12px; } .reader-type-0 p { font-size: 14px; } .reader-type-1 p { font-size: 16px; } .reader-type-2 p { font-size: 18px; } .reader-prose p { line-height: 1.6; } .book-spread::after { width: 12px; } .reader-footer { display: flex; flex-wrap: wrap; justify-content: center; } .reader-end { display: none; } }
+@media(prefers-reduced-motion: reduce) { .book-leaf { animation: none !important; } }
+.video-stage { aspect-ratio: 16 / 9; display: grid; place-items: center; background: var(--secondary); border: 1px solid var(--border); overflow: hidden; }
+.video-stage img { width: 100%; height: 100%; object-fit: contain; }
+.storyboard-strip { display: flex; gap: 12px; overflow-x: auto; padding: 20px 0; border-top: 1px solid var(--border); }
+.storyboard-tile { width: 150px; height: 116px; flex-shrink: 0; flex-direction: column; padding: 6px; }
+.storyboard-tile img { width: 136px; height: 76px; object-fit: contain; background: var(--secondary); }
+.book-spread { width: min(1440px, 100%); }
+.book-leaf { min-height: min(680px, 72vh); }
+.print-book { display: none; }
+@media print {
+  @page { size: A4; margin: 18mm; }
+  body * { visibility: hidden; }
+  .print-book, .print-book * { visibility: visible; }
+  .print-book { display: block; position: absolute; inset: 0; background: var(--card); color: var(--foreground); }
+  .print-page, .print-cover { break-after: page; min-height: 240mm; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12mm; }
+  .print-cover h1 { font-family: var(--font-display); font-size: 36pt; text-align: center; }
+  .print-page img { width: 100%; height: 140mm; object-fit: contain; }
+  .print-page p { font-family: var(--font-display); font-size: 18pt; line-height: 1.6; white-space: pre-line; }
+  .print-page small { margin-top: auto; }
 }
