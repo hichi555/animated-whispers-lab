@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Play, Pause, Download, Save, Clapperboard } from "lucide-react";
+import { Play, Pause, Download, Save, Clapperboard, Film } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,7 +14,6 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
   const [selected, setSelected] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [duration, setDuration] = useState(6);
   const page = pages[selected];
   const image = useMediaUrl(page?.image_url);
   const narration = useMediaUrl(page?.audio_url);
@@ -27,9 +26,9 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
       void audio.current.play().catch(() => setPlaying(false));
       return () => { audio.current?.pause(); };
     }
-    const timer = window.setTimeout(advance, duration * 1000);
+    const timer = window.setTimeout(advance, page.duration_seconds * 1000);
     return () => window.clearTimeout(timer);
-  }, [playing, selected, narration, duration, pages.length, page]);
+  }, [playing, selected, narration, pages.length, page]);
 
   async function exportVideo() {
     if (!pages.length || pages.some(p => !p.image_url)) { toast.error("Add an illustration to every scene before exporting."); return; }
@@ -60,7 +59,7 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
         ctx.fillStyle = background; ctx.fillRect(0, 0, 1920, 1080);
         const scale = Math.min(1920 / img.width, 1080 / img.height);
         ctx.drawImage(img, (1920 - img.width * scale) / 2, (1080 - img.height * scale) / 2, img.width * scale, img.height * scale);
-        await new Promise(resolve => window.setTimeout(resolve, duration * 1000));
+        await new Promise(resolve => window.setTimeout(resolve, (pages[i]?.duration_seconds ?? 6) * 1000));
       }
       recorder.stop(); const blob = await done;
       const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `${title.replace(/[^a-z0-9]+/gi, "-")}.webm`; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -73,7 +72,7 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
     <div className="flex flex-wrap items-center justify-between gap-3 border-y py-4"><div className="flex items-center gap-3"><Clapperboard className="text-primary"/><h2 className="text-lg font-semibold">Story film</h2><span className="text-sm text-muted-foreground">{pages.length} scenes</span></div><div className="flex gap-2"><Button variant="outline" disabled={exporting} onClick={() => setPlaying(!playing)}>{playing ? <Pause/> : <Play/>}{playing ? "Pause" : "Play with narration"}</Button><Button disabled={exporting} onClick={exportVideo}><Download/>{exporting ? "Exporting…" : "Silent WebM · 1080p"}</Button></div></div>
     <div className="grid gap-6 py-6 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div><div className="video-stage">{image ? <img src={image} alt={`Scene ${page.page_number}`} /> : <p className="text-muted-foreground">No illustration for this scene</p>}</div><p className="mt-4 font-display text-xl leading-relaxed">{page.text}</p>{narration && <audio ref={audio} key={narration} src={narration} controls className="mt-4 w-full"/>}</div>
-      <div><SceneEditor key={`${page.id}:${page.text}:${page.image_prompt}`} page={page}/><div className="mt-5 space-y-2"><Label htmlFor="scene-duration">Silent scene duration · {duration}s</Label><input id="scene-duration" className="w-full accent-primary" type="range" min={3} max={15} value={duration} onChange={e => setDuration(Number(e.target.value))} disabled={exporting}/></div></div>
+      <div><SceneEditor key={`${page.id}:${page.text}:${page.image_prompt}:${page.duration_seconds}`} page={page}/></div>
     </div>
     <div className="storyboard-strip">{pages.map((p, i) => <SceneTile key={p.id} page={p} active={i === selected} onSelect={() => { setPlaying(false); setSelected(i); }} disabled={exporting}/>)}</div>
   </section>;
@@ -83,7 +82,7 @@ function SceneTile({ page, active, onSelect, disabled }: { page: Page; active: b
   return <Button variant={active ? "default" : "outline"} aria-pressed={active} onClick={onSelect} disabled={disabled} className="storyboard-tile">{url ? <img src={url} alt=""/> : <Clapperboard/>}<span>Scene {page.page_number}</span></Button>;
 }
 function SceneEditor({ page }: { page: Page }) {
-  const [text, setText] = useState(page.text); const [prompt, setPrompt] = useState(page.image_prompt ?? ""); const [saving, setSaving] = useState(false); const qc = useQueryClient();
-  async function save() { setSaving(true); try { const { error } = await supabase.from("story_pages").update({ text, image_prompt: prompt, ...(text !== page.text ? { audio_url: null } : {}) }).eq("id", page.id); if (error) throw error; await qc.invalidateQueries({ queryKey: ["pages", page.story_id] }); toast.success("Scene saved"); } catch (e) { toast.error((e as Error).message); } finally { setSaving(false); } }
-  return <div className="space-y-4"><h3 className="font-semibold">Scene {page.page_number}</h3><div className="space-y-2"><Label htmlFor="scene-script">Narration script</Label><Textarea id="scene-script" rows={6} value={text} onChange={e => setText(e.target.value)}/></div><div className="space-y-2"><Label htmlFor="scene-direction">Illustration direction</Label><Textarea id="scene-direction" rows={4} value={prompt} onChange={e => setPrompt(e.target.value)}/></div><Button onClick={save} disabled={saving}><Save/>{saving ? "Saving…" : "Save scene"}</Button></div>;
+  const [text, setText] = useState(page.text); const [prompt, setPrompt] = useState(page.image_prompt ?? ""); const [duration, setDuration] = useState(page.duration_seconds); const [shot, setShot] = useState(page.shot_type); const [motion, setMotion] = useState(page.camera_motion); const [saving, setSaving] = useState(false); const qc = useQueryClient();
+  async function save() { setSaving(true); try { const { error } = await supabase.from("story_pages").update({ text, image_prompt: prompt, duration_seconds: duration, shot_type: shot, camera_motion: motion, ...(text !== page.text ? { audio_url: null } : {}) }).eq("id", page.id); if (error) throw error; await qc.invalidateQueries({ queryKey: ["pages", page.story_id] }); toast.success("Scene saved"); } catch (e) { toast.error((e as Error).message); } finally { setSaving(false); } }
+  return <div className="space-y-4"><div className="flex items-center gap-2"><Film className="text-primary"/><h3 className="font-semibold">Scene {page.page_number} direction</h3></div><div className="grid grid-cols-2 gap-3"><div className="space-y-2"><Label htmlFor="shot-type">Framing</Label><select id="shot-type" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={shot} onChange={e=>setShot(e.target.value)}><option>Wide</option><option>Medium</option><option>Close-up</option><option>Detail</option></select></div><div className="space-y-2"><Label htmlFor="camera-motion">Camera</Label><select id="camera-motion" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={motion} onChange={e=>setMotion(e.target.value)}><option>Locked-off</option><option>Slow push-in</option><option>Gentle pan left</option><option>Gentle pan right</option></select></div></div><div className="space-y-2"><Label htmlFor="scene-script">Narration script</Label><Textarea id="scene-script" rows={5} value={text} onChange={e => setText(e.target.value)}/></div><div className="space-y-2"><Label htmlFor="scene-direction">Illustration direction</Label><Textarea id="scene-direction" rows={3} value={prompt} onChange={e => setPrompt(e.target.value)}/></div><div className="space-y-2"><Label htmlFor="scene-duration">Duration · {duration}s</Label><input id="scene-duration" className="w-full accent-primary" type="range" min={3} max={15} value={duration} onChange={e => setDuration(Number(e.target.value))}/></div><Button onClick={save} disabled={saving}><Save/>{saving ? "Saving…" : "Save direction"}</Button></div>;
 }

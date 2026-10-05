@@ -7,7 +7,7 @@ import { BookOpen, ImageIcon, Volume2, Trash2, Printer, Clapperboard } from "luc
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/use-auth";
-import { generateImage, narrate } from "@/lib/studio.functions";
+import { generateImage, narrate, narrateWithClonedVoice } from "@/lib/studio.functions";
 import { voiceEngine } from "@/lib/catalog";
 import { uploadBase64, useMediaUrl } from "@/lib/media";
 import { Button } from "@/components/ui/button";
@@ -66,6 +66,7 @@ function PageCard({ page, story }: { page: Tables<"story_pages">; story: Tables<
   const qc = useQueryClient();
   const img = useServerFn(generateImage);
   const speak = useServerFn(narrate);
+  const customSpeak = useServerFn(narrateWithClonedVoice);
   const url = useMediaUrl(page.image_url);
   const [text, setText] = useState(page.text);
   const [busy, setBusy] = useState<"img" | "voice" | null>(null);
@@ -88,7 +89,15 @@ function PageCard({ page, story }: { page: Tables<"story_pages">; story: Tables<
   async function listen() {
     setBusy("voice");
     try {
-      const { b64, mime } = await speak({ data: { text, voice: voiceEngine(story.voice) } });
+      let audioResult: { b64: string; mime: string };
+      if (story.voice_profile_id) {
+        const { data: profile, error: profileError } = await supabase.from("voice_profiles").select("provider_voice_id").eq("id", story.voice_profile_id).single();
+        if (profileError) throw profileError;
+        audioResult = await customSpeak({ data: { text, voiceId: profile.provider_voice_id } });
+      } else {
+        audioResult = await speak({ data: { text, voice: voiceEngine(story.voice) } });
+      }
+      const { b64, mime } = audioResult;
       if (!user) return;
       const path = await uploadBase64(user.id, "narration", b64, mime);
       const { error } = await supabase.from("story_pages").update({ audio_url: path }).eq("id", page.id);
