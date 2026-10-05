@@ -99,13 +99,14 @@ function Characters() {
 function CharCard({ c }: { c: Tables<"characters"> }) {
   const url = useMediaUrl(c.portrait_url);
   const qc = useQueryClient();
+  const { data: voices = [] } = useQuery({ queryKey: ["voice-profiles"], queryFn: async () => (await supabase.from("voice_profiles").select("id,name").order("name")).data ?? [] });
   return (
     <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
       <div className="grid aspect-square place-items-center bg-secondary">
         {url ? <img src={url} alt={c.name} className="h-full w-full object-cover" /> : <UserRound className="h-10 w-10 text-muted-foreground" />}
       </div>
       <div className="flex items-start justify-between gap-2 p-4">
-        <div><p className="font-display text-lg">{c.name}</p><p className="text-xs text-muted-foreground">{c.kind}{c.personality ? ` · ${c.personality}` : ""}</p></div>
+        <div className="min-w-0 flex-1"><p className="font-display text-lg">{c.name}</p><p className="text-xs text-muted-foreground">{c.kind}{c.personality ? ` · ${c.personality}` : ""}</p><Label htmlFor={`voice-${c.id}`} className="mt-4 block text-xs">Character voice</Label><select id={`voice-${c.id}`} className="mt-1 h-9 w-full rounded-md border bg-background px-2 text-sm" value={c.voice_profile_id ?? ""} onChange={async (event) => { const { error } = await supabase.from("characters").update({ voice_profile_id: event.target.value || null }).eq("id", c.id); if (error) toast.error(error.message); else { await qc.invalidateQueries({ queryKey: ["characters"] }); toast.success("Character voice updated"); } }}><option value="">Story narrator</option>{voices.map((voice) => <option key={voice.id} value={voice.id}>{voice.name}</option>)}</select></div>
         <Button variant="ghost" size="icon" aria-label="Delete" onClick={async () => { await supabase.from("characters").delete().eq("id", c.id); qc.invalidateQueries({ queryKey: ["characters"] }); }} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
       </div>
     </div>
