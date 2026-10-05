@@ -10,6 +10,23 @@ export async function uploadBase64(userId: string, folder: string, b64: string, 
   return path;
 }
 
+export async function uploadFile(userId: string, folder: string, file: File) {
+  const safeExtension = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+  const path = `${userId}/${folder}/${crypto.randomUUID()}.${safeExtension}`;
+  const { error } = await supabase.storage.from("media").upload(path, file, { contentType: file.type, upsert: false });
+  if (error) throw error;
+  return path;
+}
+
+export function fileToBase64(file: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("The file could not be read."));
+    reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+    reader.readAsDataURL(file);
+  });
+}
+
 export function useMediaUrl(path: string | null | undefined) {
   return useQuery({
     queryKey: ["media", path],
