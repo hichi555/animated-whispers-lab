@@ -10,11 +10,171 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.18"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
-      [_ in never]: never
+      characters: {
+        Row: {
+          age: string | null
+          appearance: string | null
+          art_style: string
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          outfit: string | null
+          palette: string | null
+          personality: string | null
+          portrait_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age?: string | null
+          appearance?: string | null
+          art_style?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          name: string
+          outfit?: string | null
+          palette?: string | null
+          personality?: string | null
+          portrait_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          age?: string | null
+          appearance?: string | null
+          art_style?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          outfit?: string | null
+          palette?: string | null
+          personality?: string | null
+          portrait_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      stories: {
+        Row: {
+          age_range: string
+          art_style: string
+          character_ids: string[]
+          cover_url: string | null
+          created_at: string
+          id: string
+          idea: string | null
+          status: string
+          theme: string | null
+          title: string
+          tone: string | null
+          updated_at: string
+          user_id: string
+          voice: string
+        }
+        Insert: {
+          age_range?: string
+          art_style?: string
+          character_ids?: string[]
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          idea?: string | null
+          status?: string
+          theme?: string | null
+          title?: string
+          tone?: string | null
+          updated_at?: string
+          user_id?: string
+          voice?: string
+        }
+        Update: {
+          age_range?: string
+          art_style?: string
+          character_ids?: string[]
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          idea?: string | null
+          status?: string
+          theme?: string | null
+          title?: string
+          tone?: string | null
+          updated_at?: string
+          user_id?: string
+          voice?: string
+        }
+        Relationships: []
+      }
+      story_pages: {
+        Row: {
+          audio_url: string | null
+          created_at: string
+          id: string
+          image_prompt: string | null
+          image_url: string | null
+          page_number: number
+          story_id: string
+          text: string
+          user_id: string
+        }
+        Insert: {
+          audio_url?: string | null
+          created_at?: string
+          id?: string
+          image_prompt?: string | null
+          image_url?: string | null
+          page_number: number
+          story_id: string
+          text?: string
+          user_id?: string
+        }
+        Update: {
+          audio_url?: string | null
+          created_at?: string
+          id?: string
+          image_prompt?: string | null
+          image_url?: string | null
+          page_number?: number
+          story_id?: string
+          text?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_pages_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

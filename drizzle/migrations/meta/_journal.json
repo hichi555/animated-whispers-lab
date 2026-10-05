@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790183269411,
+      "tag": "0000_cyliatales_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791081945999,
+      "tag": "0001_persist_page_narration",
+      "breakpoints": true
+    }
+  ]
+}

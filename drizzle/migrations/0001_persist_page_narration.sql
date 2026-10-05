@@ -1,0 +1,1 @@
+ALTER TABLE public.story_pages ADD COLUMN IF NOT EXISTS audio_url text;
