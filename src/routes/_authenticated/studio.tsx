@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BookOpen, PenTool, UserRound, Mic } from "lucide-react";
+import { BookOpen, PenTool, UserRound, Mic, Clapperboard, ArrowRight, CheckCircle2, Circle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import puppy from "@/assets/puppy.asset.json";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { BookCard } from "./stories.index";
@@ -21,6 +20,10 @@ function Studio() {
     queryKey: ["characters-count"],
     queryFn: async () => (await supabase.from("characters").select("id", { count: "exact", head: true })).count ?? 0,
   });
+  const { data: voices = 0 } = useQuery({
+    queryKey: ["voice-count"],
+    queryFn: async () => (await supabase.from("voice_profiles").select("id", { count: "exact", head: true })).count ?? 0,
+  });
   const tiles = [
     { to: "/stories/new", icon: PenTool, title: "Write a new book", body: "Idea, age, theme, style — we draft it." },
     { to: "/characters", icon: UserRound, title: `Characters (${cast})`, body: "Build a recurring cast." },
@@ -30,7 +33,7 @@ function Studio() {
   return (
     <div>
       <PageHeader eyebrow="Studio" title="Your story studio" actions={<Button asChild><Link to="/stories/new">New story</Link></Button>} />
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-6 border-y py-6"><div><p className="text-xs font-semibold uppercase text-primary">Featured character</p><h2 className="mt-2 text-2xl font-semibold">A place to belong</h2><p className="mt-2 text-sm text-muted-foreground">A puppy story about kindness and finding a home.</p><Button asChild variant="link" className="mt-3 px-0"><Link to="/puppy">Open the puppy story →</Link></Button></div><Link to="/puppy" aria-label="Open puppy story"><img src={puppy.url} alt="Golden puppy on a wooden bench" className="h-48 w-56 rounded-lg object-contain"/></Link></div>
+      <div className="production-desk mb-8 border-y py-7"><div><p className="text-xs font-semibold uppercase text-primary">Production desk</p><h2 className="mt-2 text-2xl font-semibold">Take a story from first idea to final frame</h2><p className="mt-2 max-w-xl text-sm text-muted-foreground">Build the cast, choose a narrator, illustrate every scene, then shape the pacing in the film workspace.</p></div><div className="production-steps">{[{label:"Cast",done:cast>0},{label:"Voice",done:voices>0},{label:"Story",done:stories.length>0},{label:"Film",done:stories.some(s=>s.status==="complete")}].map((step)=><div key={step.label}>{step.done?<CheckCircle2/>:<Circle/>}<span>{step.label}</span></div>)}</div><Button asChild><Link to={stories[0] ? "/stories/$id" : "/stories/new"} params={stories[0] ? { id: stories[0].id } : undefined as never}>{stories[0] ? "Continue production" : "Start a story"}<ArrowRight/></Link></Button></div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {tiles.map((t) => (
           <Link key={t.to} to={t.to} className="rounded-2xl border bg-card p-6 shadow-soft transition hover:-translate-y-0.5">
@@ -40,6 +43,7 @@ function Studio() {
           </Link>
         ))}
       </div>
+      <div className="mt-4"><Button asChild variant="outline"><Link to="/labs"><Clapperboard/>Open film production</Link></Button></div>
       <h2 className="mt-12 text-2xl font-semibold">Recent books</h2>
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stories.slice(0, 4).map((s) => <BookCard key={s.id} story={s} />)}

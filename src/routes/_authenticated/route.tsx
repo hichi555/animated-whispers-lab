@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LayoutGrid, PenTool, BookOpen, UserRound, Mic, Sparkles, LogOut } from "lucide-react";
+import { LayoutGrid, PenTool, BookOpen, UserRound, Mic, Clapperboard, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ const NAV = [
     { to: "/characters", label: "Characters", icon: UserRound },
     { to: "/voices", label: "Voices", icon: Mic },
   ] },
-  { group: "Discover", items: [{ to: "/puppy", label: "Puppy story", icon: Sparkles }] },
+  { group: "Produce", items: [{ to: "/labs", label: "Production", icon: Clapperboard }] },
 ] as const;
 
 function StudioLayout() {
@@ -35,7 +35,7 @@ function StudioLayout() {
 
   return (
     <div className="flex min-h-screen bg-background studio-shell">
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-sidebar p-5 text-sidebar-foreground md:flex">
+      <aside className="studio-sidebar sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-sidebar p-5 text-sidebar-foreground md:flex">
         <Logo light />
         <nav className="mt-10 flex-1 space-y-7">
           {NAV.map((g) => (
