@@ -218,3 +218,12 @@
   .print-page p { font-family: var(--font-display); font-size: 18pt; line-height: 1.6; white-space: pre-line; }
   .print-page small { margin-top: auto; }
 }
+.video-stage img { transform-origin: center; }
+.motion-still { transform: scale(var(--shot-scale, 1)); }
+.motion-push { animation: scene-push var(--scene-duration, 6s) ease-in-out forwards; }
+.motion-pan-left { animation: scene-pan-left var(--scene-duration, 6s) ease-in-out forwards; }
+.motion-pan-right { animation: scene-pan-right var(--scene-duration, 6s) ease-in-out forwards; }
+@keyframes scene-push { from { transform: scale(var(--shot-scale, 1)); } to { transform: scale(calc(var(--shot-scale, 1) * 1.1)); } }
+@keyframes scene-pan-left { from { transform: scale(calc(var(--shot-scale, 1) * 1.12)) translateX(4%); } to { transform: scale(calc(var(--shot-scale, 1) * 1.12)) translateX(-4%); } }
+@keyframes scene-pan-right { from { transform: scale(calc(var(--shot-scale, 1) * 1.12)) translateX(-4%); } to { transform: scale(calc(var(--shot-scale, 1) * 1.12)) translateX(4%); } }
+@media (prefers-reduced-motion: reduce) { .motion-push, .motion-pan-left, .motion-pan-right { animation: none; } }
