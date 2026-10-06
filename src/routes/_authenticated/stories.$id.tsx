@@ -77,7 +77,14 @@ function PageCard({ page, story }: { page: Tables<"story_pages">; story: Tables<
     if (!user) return;
     setBusy("img");
     try {
-      const { b64 } = await img({ data: { prompt: page.image_prompt ?? text, style: story.art_style } });
+      let referencePaths: string[] = [];
+      let castNote = "";
+      if (story.character_ids.length) {
+        const { data: cast } = await supabase.from("characters").select("name, appearance, outfit, palette, portrait_url, reference_url").in("id", story.character_ids);
+        referencePaths = (cast ?? []).flatMap(c => [c.portrait_url, c.reference_url]).filter((p): p is string => !!p).slice(0, 6);
+        castNote = (cast ?? []).map(c => `${c.name}: ${[c.appearance, c.outfit, c.palette].filter(Boolean).join(", ")}`).join("; ");
+      }
+      const { b64 } = await img({ data: { prompt: `${page.image_prompt ?? text}${castNote ? `. Characters: ${castNote}` : ""}`, style: story.art_style, referencePaths } });
       const path = await uploadBase64(user.id, "pages", b64);
       await supabase.from("story_pages").update({ image_url: path }).eq("id", page.id);
       if (page.page_number === 1 && !story.cover_url) await supabase.from("stories").update({ cover_url: path }).eq("id", story.id);

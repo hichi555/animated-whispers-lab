@@ -1,0 +1,1 @@
+ALTER TABLE public.story_pages ADD COLUMN IF NOT EXISTS motion_job_id text, ADD COLUMN IF NOT EXISTS motion_error text, ADD COLUMN IF NOT EXISTS motion_prompt text;

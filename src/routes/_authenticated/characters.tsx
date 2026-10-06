@@ -46,7 +46,7 @@ function Characters() {
       if (referenceFile) reference_url = await uploadFile(user.id, "character-references", referenceFile);
       try {
         const desc = [f.name, f.kind, f.age && `age ${f.age}`, f.face_shape && `${f.face_shape} face`, f.body_shape && `${f.body_shape} build`, f.hair_style, f.expression, f.silhouette && `${f.silhouette} silhouette`, f.appearance, f.outfit, f.palette && `fixed colors ${f.palette}`, f.personality, referenceFile && "use the uploaded portrait as the identity reference"].filter(Boolean).join(", ");
-        const { b64 } = await img({ data: { prompt: desc, style: f.art_style, portrait: true } });
+        const { b64 } = await img({ data: { prompt: desc, style: f.art_style, portrait: true, referencePaths: reference_url ? [reference_url] : [] } });
         portrait_url = await uploadBase64(user.id, "characters", b64);
       } catch (err) { toast.error(`Portrait failed: ${(err as Error).message}`); }
       const { error } = await supabase.from("characters").insert({ ...f, user_id: user.id, portrait_url, reference_url });
