@@ -180,6 +180,9 @@ export type Database = {
           id: string
           image_prompt: string | null
           image_url: string | null
+          motion_error: string | null
+          motion_job_id: string | null
+          motion_prompt: string | null
           motion_status: string
           motion_url: string | null
           page_number: number
@@ -197,6 +200,9 @@ export type Database = {
           id?: string
           image_prompt?: string | null
           image_url?: string | null
+          motion_error?: string | null
+          motion_job_id?: string | null
+          motion_prompt?: string | null
           motion_status?: string
           motion_url?: string | null
           page_number: number
@@ -214,6 +220,9 @@ export type Database = {
           id?: string
           image_prompt?: string | null
           image_url?: string | null
+          motion_error?: string | null
+          motion_job_id?: string | null
+          motion_prompt?: string | null
           motion_status?: string
           motion_url?: string | null
           page_number?: number
