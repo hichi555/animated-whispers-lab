@@ -55,27 +55,108 @@ Keep it safe, positive and age-appropriate with a satisfying ending. Title under
 export const generateImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({ prompt: z.string().min(3).max(4000), style: z.string(), portrait: z.boolean().optional() }).parse(d),
+    z.object({
+      prompt: z.string().min(3).max(4000),
+      style: z.string(),
+      portrait: z.boolean().optional(),
+      referencePaths: z.array(z.string().min(3).max(300)).max(6).optional(),
+    }).parse(d),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { requireKey, GATEWAY, gatewayError } = await import("./ai-gateway.server");
     const key = requireKey();
-    const prompt = `${data.style} children's book illustration. ${data.prompt}. Rich, cohesive, professional picture-book quality, gentle lighting, no words or letters in the image.${data.portrait ? " Full-body character portrait on a soft plain background." : ""}`;
-    const res = await fetch(`${GATEWAY}/v1/images/generations`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "openai/gpt-image-2.5-sunburst",
-        prompt,
-        size: data.portrait ? "1024x1024" : "1536x1024",
-        quality: "medium",
-      }),
-    });
+    const refs = [...new Set(data.referencePaths ?? [])].filter((p) => p.startsWith(`${context.userId}/`));
+    const base = `${data.style} children's book illustration. ${data.prompt}. Rich, cohesive, professional picture-book quality, gentle lighting, no words or letters in the image.${data.portrait ? " Full-body character portrait on a soft plain background." : ""}`;
+    const size = data.portrait ? "1024x1024" : "1536x1024";
+    let res: Response;
+    if (refs.length) {
+      const form = new FormData();
+      form.append("model", "openai/gpt-image-2.5-sunburst");
+      form.append("prompt", `Reference images 1-${refs.length} show the established characters. Keep each character's face, hairstyle, body proportions, outfit and color palette exactly consistent with the references, redrawn in the requested art style. Do not copy the references' backgrounds or poses. Scene: ${base}`);
+      form.append("size", size);
+      form.append("quality", "high");
+      for (const [i, path] of refs.entries()) {
+        const { data: blob, error } = await context.supabase.storage.from("media").download(path);
+        if (error || !blob) throw new Error("A character reference image could not be loaded.");
+        form.append("image[]", new File([blob], `reference-${i}.${blob.type.includes("jpeg") ? "jpg" : blob.type.includes("webp") ? "webp" : "png"}`, { type: blob.type || "image/png" }));
+      }
+      res = await fetch(`${GATEWAY}/v1/images/edits`, { method: "POST", headers: { Authorization: `Bearer ${key}` }, body: form });
+    } else {
+      res = await fetch(`${GATEWAY}/v1/images/generations`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "openai/gpt-image-2.5-sunburst", prompt: base, size, quality: "high" }),
+      });
+    }
     if (!res.ok) throw await gatewayError(res);
     const json = (await res.json()) as { data?: { b64_json?: string }[] };
     const b64 = json.data?.[0]?.b64_json;
     if (!b64) throw new Error("No image was returned. Please try again.");
     return { b64 };
+  });
+
+const CAMERA_PROMPTS: Record<string, string> = {
+  "Locked-off": "Locked-off camera, no camera movement",
+  "Slow push-in": "Slow, gentle push-in toward the subject",
+  "Gentle pan left": "Gentle, slow pan to the left",
+  "Gentle pan right": "Gentle, slow pan to the right",
+};
+
+export const startSceneMotion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ pageId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { requireKey, GATEWAY, gatewayError } = await import("./ai-gateway.server");
+    const { data: page, error } = await context.supabase.from("story_pages").select("*").eq("id", data.pageId).single();
+    if (error || !page) throw new Error("Scene not found.");
+    if (!page.image_url) throw new Error("Illustrate this scene before animating it.");
+    if (page.motion_status === "processing") throw new Error("This scene is already animating.");
+    const { data: blob, error: dlError } = await context.supabase.storage.from("media").download(page.image_url);
+    if (dlError || !blob) throw new Error("The scene illustration could not be loaded.");
+    const imageB64 = Buffer.from(await blob.arrayBuffer()).toString("base64");
+    const duration = Math.min(10, Math.max(3, page.duration_seconds));
+    const prompt = `Animate the illustration <FIRST_FRAME> as one shot from a children's picture book. ${page.shot_type} framing. ${CAMERA_PROMPTS[page.camera_motion] ?? page.camera_motion}. ${page.motion_prompt ? `Action: ${page.motion_prompt}.` : `Subtle, natural life: characters breathe and move gently, small environmental motion such as leaves, light or water.`} Keep every character's face, proportions, outfit, colors and the illustrated art style unchanged. In a single continuous shot, no scene cuts. Ends on a calm held frame. Audio: soft gentle ambient sound matching the scene. No music. No dialogue. No captions, no on-screen text.`;
+    const res = await fetch(`${GATEWAY}/v1/videos`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${requireKey()}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-omni-1.1-flash",
+        input: [{ type: "text", text: prompt }, { type: "image", data: imageB64, mime_type: blob.type || "image/png" }],
+        response_format: { type: "video", resolution: "1080p", duration: `${duration}s`, aspect_ratio: "16:9" },
+      }),
+    });
+    if (!res.ok) throw await gatewayError(res);
+    const job = (await res.json()) as { id?: string };
+    if (!job.id) throw new Error("The motion clip could not be started.");
+    await context.supabase.from("story_pages").update({ motion_job_id: job.id, motion_status: "processing", motion_error: null }).eq("id", page.id);
+    return { status: "processing" };
+  });
+
+export const checkSceneMotion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ pageId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { requireKey, GATEWAY, gatewayError } = await import("./ai-gateway.server");
+    const { data: page, error } = await context.supabase.from("story_pages").select("id, motion_job_id, motion_status").eq("id", data.pageId).single();
+    if (error || !page) throw new Error("Scene not found.");
+    if (page.motion_status !== "processing" || !page.motion_job_id) return { status: page.motion_status };
+    const key = requireKey();
+    const res = await fetch(`${GATEWAY}/v1/videos/${page.motion_job_id}`, { headers: { Authorization: `Bearer ${key}` } });
+    if (!res.ok) throw await gatewayError(res);
+    const job = (await res.json()) as { status: string; progress?: number; error?: { message?: string } };
+    if (job.status === "failed") {
+      const message = job.error?.message ?? "The motion clip failed.";
+      await context.supabase.from("story_pages").update({ motion_status: "failed", motion_error: message }).eq("id", page.id);
+      return { status: "failed", error: message };
+    }
+    if (job.status !== "completed") return { status: "processing", progress: job.progress ?? 0 };
+    const content = await fetch(`${GATEWAY}/v1/videos/${page.motion_job_id}/content`, { headers: { Authorization: `Bearer ${key}` } });
+    if (!content.ok) throw await gatewayError(content);
+    const path = `${context.userId}/motion/${page.id}-${page.motion_job_id}.mp4`;
+    const { error: upError } = await context.supabase.storage.from("media").upload(path, await content.arrayBuffer(), { contentType: "video/mp4", upsert: true });
+    if (upError) throw new Error("The finished clip could not be saved.");
+    await context.supabase.from("story_pages").update({ motion_url: path, motion_status: "completed", motion_job_id: null }).eq("id", page.id);
+    return { status: "completed" };
   });
 
 export const narrate = createServerFn({ method: "POST" })
