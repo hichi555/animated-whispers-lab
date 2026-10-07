@@ -57,7 +57,22 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
       const canvas = document.createElement("canvas"); canvas.width = 1920; canvas.height = 1080;
       const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Video canvas is unavailable");
       stream = canvas.captureStream(30);
-      const recorder = new MediaRecorder(stream, { mimeType: "video/webm", videoBitsPerSecond: 12000000 });
+      // Narration: decode each page's saved audio and mix into the film soundtrack.
+      const audioCtx = new AudioContext();
+      const dest = audioCtx.createMediaStreamDestination();
+      const voices = await Promise.all(pages.map(async p => {
+        if (!p.audio_url) return null;
+        try {
+          const { data } = await supabase.storage.from("media").createSignedUrl(p.audio_url, 3600);
+          if (!data) return null;
+          const buf = await (await fetch(data.signedUrl)).arrayBuffer();
+          return await audioCtx.decodeAudioData(buf);
+        } catch { return null; }
+      }));
+      const hasVoice = voices.some(Boolean);
+      if (hasVoice) dest.stream.getAudioTracks().forEach(t => stream!.addTrack(t));
+      const mime = hasVoice && MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus") ? "video/webm;codecs=vp9,opus" : "video/webm";
+      const recorder = new MediaRecorder(stream, { mimeType: mime, audioBitsPerSecond: 192000, videoBitsPerSecond: 12000000 });
       const chunks: BlobPart[] = [];
       recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
       const done = new Promise<Blob>((resolve, reject) => { recorder.onstop = () => resolve(new Blob(chunks, { type: "video/webm" })); recorder.onerror = () => reject(new Error("Video export failed")); });
@@ -67,7 +82,9 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
         setSelected(i);
         const img = images[i]; const p = pages[i];
         if (!img || !p) throw new Error("Scene illustration is unavailable");
-        const ms = p.duration_seconds * 1000; const start = performance.now();
+        const voice = voices[i];
+        const ms = Math.max(p.duration_seconds * 1000, voice ? voice.duration * 1000 + 600 : 0); const start = performance.now();
+        if (voice) { const src = audioCtx.createBufferSource(); src.buffer = voice; src.connect(dest); src.start(audioCtx.currentTime + 0.3); }
         const base = Math.min(1920 / img.width, 1080 / img.height) * (SHOT_SCALE[p.shot_type] ?? 1);
         await new Promise<void>(resolve => {
           const frame = () => {
@@ -85,9 +102,9 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
           frame();
         });
       }
-      recorder.stop(); const blob = await done;
+      recorder.stop(); const blob = await done; void audioCtx.close();
       const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `${title.replace(/[^a-z0-9]+/gi, "-")}.webm`; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toast.success("1080p storyboard film exported");
+      toast.success(hasVoice ? "1080p film exported with narration" : "1080p film exported — add narration to pages to include voice");
     } catch (error) { toast.error((error as Error).message); }
     finally { stream?.getTracks().forEach(track => track.stop()); setExporting(false); }
   }

@@ -277,3 +277,59 @@ export const deleteClonedVoice = createServerFn({ method: "POST" })
     if (!response.ok && response.status !== 404) throw await elevenLabsError(response, "voice removal");
     return { ok: true };
   });
+
+const ActivityInput = z.object({
+  title: z.string().trim().max(120).optional(),
+  story: z.string().trim().min(80, "Paste at least a short paragraph of story text.").max(20000),
+  ageRange: z.enum(["0-3", "4-6", "7-9", "10-12"]),
+  questionCount: z.number().int().min(3).max(12),
+  vocabCount: z.number().int().min(3).max(12),
+});
+
+export const generateLearningActivities = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => ActivityInput.parse(d))
+  .handler(async ({ data }) => {
+    const { requireKey, textModel } = await import("./ai-gateway.server");
+    const { streamText, Output, NoObjectGeneratedError } = await import("ai");
+    const schema = z.object({
+      summary: z.string(),
+      readingLevelNote: z.string(),
+      questions: z.array(z.object({
+        level: z.enum(["Recall", "Understanding", "Inference", "Personal connection"]),
+        question: z.string(),
+        choices: z.array(z.string()),
+        answer: z.string(),
+        teacherNote: z.string(),
+      })),
+      vocabulary: z.array(z.object({
+        word: z.string(),
+        kidDefinition: z.string(),
+        fromStory: z.string(),
+        useItSentence: z.string(),
+        activity: z.string(),
+      })),
+      extensionActivities: z.array(z.object({ title: z.string(), minutes: z.number(), instructions: z.string() })),
+    });
+    const prompt = `You are an experienced early-literacy teacher. Build classroom-ready learning material for the story below.
+Target reader age: ${data.ageRange}. Match wording, sentence length and cognitive demand to that age (ages 0-3: picture-pointing and yes/no prompts read aloud by an adult; 4-6: simple oral questions; 7-9: independent short answers; 10-12: inference and evidence).
+Write exactly ${data.questionCount} comprehension questions moving from Recall to Understanding to Inference to Personal connection. Give 3 short choices for Recall/Understanding questions; leave choices empty for open questions and put a model answer in "answer". Answers must be supported by the story text; never invent plot details.
+Pick exactly ${data.vocabCount} vocabulary words that actually appear in the story and are valuable for this age. Quote the sentence where each appears in "fromStory", define it in child-friendly words, give a new example sentence and one short hands-on activity (gesture, drawing, sorting, acting out).
+Add 2 extension activities (5-15 minutes). Keep everything warm, inclusive and safe. Summary: 2 sentences.
+${data.title ? `Title: ${data.title}\n` : ""}Story:
+"""
+${data.story}
+"""`;
+    try {
+      const result = streamText({
+        model: textModel(requireKey()),
+        output: Output.object({ schema }),
+        prompt,
+        providerOptions: { openai: { forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto", store: false, include: ["reasoning.encrypted_content"] } },
+      });
+      return await result.output;
+    } catch (e) {
+      if (NoObjectGeneratedError.isInstance(e)) throw new Error("The activities came back incomplete. Please try again.");
+      throw e;
+    }
+  });
