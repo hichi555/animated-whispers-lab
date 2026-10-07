@@ -11,6 +11,7 @@ export const ART_STYLES = [
   { id: "Neon fantasy", hint: "Luminous color, glowing lanterns and bold contrast" },
   { id: "Oil painting", hint: "Rich brushwork and luminous painted light" },
   { id: "Engraving", hint: "Fine etched lines and intricate vintage detail" },
+  { id: "Enchanted realism", hint: "Golden-hour detail, glowing windows and lush woodland" },
   { id: "Comic book", hint: "Expressive ink, graphic color and dynamic scenes" },
 ] as const;
 

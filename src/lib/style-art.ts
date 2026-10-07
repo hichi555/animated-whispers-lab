@@ -6,6 +6,8 @@ import neon from "@/assets/image_cba1bc56.jpg.asset.json";
 import oil from "@/assets/image_dcc884b5.jpg.asset.json";
 import engraving from "@/assets/image_d450cee3.jpg.asset.json";
 import character from "@/assets/image_e27fd12.jpg.asset.json";
+import enchanted from "@/assets/enchanted-realism.asset.json";
+import pencil from "@/assets/character-lock.asset.json";
 import comic from "@/assets/image_e6c210cc.jpg.asset.json";
 
 export const STYLE_ART: Record<string, string> = {
@@ -18,4 +20,6 @@ export const STYLE_ART: Record<string, string> = {
   "Oil painting": oil.url,
   "Engraving": engraving.url,
   "Comic book": comic.url,
+  "Colored pencil": pencil.url,
+  "Enchanted realism": enchanted.url,
 };
