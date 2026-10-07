@@ -41,15 +41,15 @@ function Activities() {
   }, []);
 
   async function loadBook(id: string) {
-    const book = books.find((b) => b.id === id); if (!book) return;
+    const book = books.find((b) => b.id === id); if (!book) return undefined;
     const { data, error } = await supabase.from("story_pages").select("text,page_number").eq("story_id", id).order("page_number");
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setTitle(book.title); setStory((data ?? []).map((p) => p.text).filter(Boolean).join("\n\n"));
     if (AGE_RANGES.some((a) => a.id === book.age_range)) setAge(book.age_range as typeof age);
   }
 
   async function generate() {
-    if (story.trim().length < 80) return toast.error("Paste at least a short paragraph of story text.");
+    if (story.trim().length < 80) { toast.error("Paste at least a short paragraph of story text."); return; }
     setBusy(true); setResult(null);
     try { setResult(await run({ data: { title: title || undefined, story, ageRange: age, questionCount: questions, vocabCount: vocab } })); }
     catch (e) { toast.error((e as Error).message); }
