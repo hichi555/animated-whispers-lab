@@ -1,33 +1,190 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { BookOpen, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Sparkles, BookOpen, PencilLine, Mic, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EmptyState } from '@/components/EmptyState';
+import { CreateStoryModal } from '@/components/studio/CreateStoryModal';
 
 export const Route = createFileRoute('/studio/')({ 
   component: StudioDashboard,
 });
 
+const MOCK_STORIES = [
+  {
+    id: '1',
+    title: 'Fern and the Lantern Fox',
+    pages: 8,
+    updated: '2 days ago',
+    status: 'draft',
+    ageGroup: '6-8',
+  },
+  {
+    id: '2',
+    title: 'Milo and the Moonberry Tree',
+    pages: 12,
+    updated: '5 days ago',
+    status: 'draft',
+    ageGroup: '6-8',
+  },
+];
+
+const FREE_FEATURES = [
+  'Create 2 full stories per month',
+  'Write and preview pages',
+  'Create characters and voice presets',
+  'Export PDF preview',
+];
+
 function StudioDashboard() {
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [stories] = useState(MOCK_STORIES);
+
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold">Your Stories</h1>
-        <p className="text-muted-foreground mt-1">Create, edit, and publish your illustrated children's books</p>
-      </div>
+    <div className="flex-1 overflow-auto">
+      <div className="p-6 md:p-8">
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">CyliaTales Studio</p>
+            <h1 className="mt-2 text-4xl font-semibold">Your story desk</h1>
+          </div>
 
-      <div className="mb-8">
-        <Button size="lg" className="gap-2">
-          <Plus className="h-5 w-5" />
-          Create New Story
-        </Button>
-      </div>
+          <Button size="lg" className="gap-2" onClick={() => setShowCreateModal(true)}>
+            <Plus className="h-4 w-4" />
+            Create new story
+          </Button>
+        </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-xl border-2 border-dashed border-border p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
-          <BookOpen className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-          <p className="font-medium">Start Your First Story</p>
-          <p className="text-sm text-muted-foreground mt-1">Create a new book with AI assistance</p>
+        <div className="mb-8 grid gap-4 md:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <BookOpen className="h-4 w-4 text-primary" /> Stories
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">{stories.length}</p>
+              <p className="mt-1 text-sm text-muted-foreground">this month</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <PencilLine className="h-4 w-4 text-primary" /> Pages
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">{stories.reduce((sum, s) => sum + s.pages, 0)}</p>
+              <p className="mt-1 text-sm text-muted-foreground">total written</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Mic className="h-4 w-4 text-primary" /> Voices
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">3</p>
+              <p className="mt-1 text-sm text-muted-foreground">voice presets</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Download className="h-4 w-4 text-primary" /> Exports
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">2</p>
+              <p className="mt-1 text-sm text-muted-foreground">saved exports</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[1.5fr_0.9fr]">
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-2xl font-semibold">Recent stories</h2>
+            </div>
+
+            {stories.length > 0 ? (
+              <div className="space-y-4">
+                {stories.map((story) => (
+                  <Card key={story.id} className="overflow-hidden transition-all hover:shadow-md">
+                    <div className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-secondary text-primary">
+                          <BookOpen className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold">{story.title}</h3>
+                          <p className="text-sm text-muted-foreground">{story.pages} pages • Updated {story.updated}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span className="inline-flex items-center rounded-full border bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
+                          Draft
+                        </span>
+                        <Button variant="outline" size="sm">Open</Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="py-12">
+                  <EmptyState
+                    icon={<Sparkles className="h-8 w-8" />}
+                    title="No stories yet"
+                    description="Start with a story idea and let the studio build your first illustrated children's book."
+                    actionLabel="Create your first story"
+                    action={() => setShowCreateModal(true)}
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" /> Free plan
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div>
+                <p className="text-3xl font-semibold">2 stories</p>
+                <p className="text-sm text-muted-foreground">Included each month</p>
+              </div>
+
+              <ul className="space-y-3">
+                {FREE_FEATURES.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <span className="mt-0.5 h-4 w-4 rounded-full bg-primary/20" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="rounded-xl border bg-secondary/50 p-4">
+                <p className="text-sm font-medium text-muted-foreground">Lifetime plan</p>
+                <p className="mt-2 text-3xl font-semibold">$89</p>
+                <p className="mt-1 text-sm text-muted-foreground">Unlimited stories and exports</p>
+              </div>
+
+              <Button className="w-full" size="lg">Upgrade now</Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
+
+      <CreateStoryModal open={showCreateModal} onOpenChange={setShowCreateModal} />
     </div>
   );
 }
