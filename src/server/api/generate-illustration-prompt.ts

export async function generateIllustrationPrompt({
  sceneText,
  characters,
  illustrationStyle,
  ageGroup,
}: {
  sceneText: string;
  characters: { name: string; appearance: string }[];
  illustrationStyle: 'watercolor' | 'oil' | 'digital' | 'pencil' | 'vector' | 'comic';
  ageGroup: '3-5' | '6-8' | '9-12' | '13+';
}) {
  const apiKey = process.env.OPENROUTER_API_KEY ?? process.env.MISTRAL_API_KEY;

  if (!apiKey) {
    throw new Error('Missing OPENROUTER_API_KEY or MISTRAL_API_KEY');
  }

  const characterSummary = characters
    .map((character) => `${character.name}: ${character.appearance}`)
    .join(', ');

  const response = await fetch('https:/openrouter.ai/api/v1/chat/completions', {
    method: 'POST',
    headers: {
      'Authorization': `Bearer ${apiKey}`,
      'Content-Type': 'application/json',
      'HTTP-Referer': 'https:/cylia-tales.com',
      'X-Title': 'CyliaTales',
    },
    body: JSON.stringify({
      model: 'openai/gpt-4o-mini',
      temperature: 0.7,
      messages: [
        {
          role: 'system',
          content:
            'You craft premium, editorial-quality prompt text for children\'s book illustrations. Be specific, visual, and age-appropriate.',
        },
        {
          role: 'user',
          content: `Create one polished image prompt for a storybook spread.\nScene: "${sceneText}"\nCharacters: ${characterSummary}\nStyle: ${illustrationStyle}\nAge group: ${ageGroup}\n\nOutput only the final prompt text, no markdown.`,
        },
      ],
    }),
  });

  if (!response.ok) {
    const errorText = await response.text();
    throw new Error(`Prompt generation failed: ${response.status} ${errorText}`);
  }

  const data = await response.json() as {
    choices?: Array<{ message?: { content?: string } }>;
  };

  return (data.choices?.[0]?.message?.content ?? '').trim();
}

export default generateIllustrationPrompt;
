@@ -1,0 +1,72 @@
+export async function generateStoryOutline({
+  idea,
+  ageGroup,
+  theme,
+}: {
+  idea: string;
+  ageGroup: '3-5' | '6-8' | '9-12' | '13+';
+  theme?: string;
+}) {
+  const apiKey = process.env.OPENROUTER_API_KEY ?? process.env.MISTRAL_API_KEY;
+
+  if (!apiKey) {
+    throw new Error('Missing OPENROUTER_API_KEY or MISTRAL_API_KEY');
+  }
+
+  const guidelines = {
+    '3-5': '2-6 pages, short, rhythmic, gentle, highly visual',
+    '6-8': '6-12 pages, clear beginning-middle-end, emotional arc, gentle conflict',
+    '9-12': '8-16 pages, layered plot, strong character growth, richer vocabulary',
+    '13+': '10-20 pages, nuanced themes, layered emotional arc',
+  } as const;
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://cylia-tales.com',
+      'X-Title': 'CyliaTales',
+    },
+    body: JSON.stringify({
+      model: 'openai/gpt-4o-mini',
+      temperature: 0.8,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are a premium children\'s book author. Create original, emotionally resonant, age-appropriate stories with vivid visual scenes. No generic filler, no repetitive clichés, no AI slop.',
+        },
+        {
+          role: 'user',
+          content: `Create a premium children's story outline for this idea:\nIdea: "${idea}"\nAge group: ${ageGroup}\nTheme: ${theme ?? 'friendship and curiosity'}\nGuideline: ${guidelines[ageGroup]}\n\nReturn ONLY valid JSON like this object:\n{\n  "title": "Story Title",\n  "outline": "2-3 paragraph story summary",\n  "pages": [{"number":1,"title":"Scene title","summary":"Visual description"}],\n  "themes": ["theme1","theme2"],\n  "estimatedReadingTime": 3\n}`,
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Outline generation failed: ${response.status} ${errorText}`);
+  }
+
+  const data = await response.json() as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+
+  const content = data.choices?.[0]?.message?.content ?? '';
+  const jsonMatch = content.match(/\{[\s\S]*\}/);
+
+  if (!jsonMatch) {
+    throw new Error('Outline generation returned malformed JSON');
+  }
+
+  const parsed = JSON.parse(jsonMatch[0]);
+  return {
+    title: parsed.title ?? 'Untitled Story',
+    outline: parsed.outline ?? '',
+    pages: Array.isArray(parsed.pages) ? parsed.pages : [],
+    themes: Array.isArray(parsed.themes) ? parsed.themes : ['curiosity', 'friendship'],
+    estimatedReadingTime: Number(parsed.estimatedReadingTime ?? 4),
+  };
+}
