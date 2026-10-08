@@ -2,15 +2,35 @@ import { useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FREE_PLAN, formatLifetimePrice, type UserPlan } from '@/lib/pricing';
 
-export function CreateStoryModal({ open, onOpenChange }: { open: boolean; onOpenChange: (next: boolean) => void }) {
+interface CreateStoryModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  plan?: UserPlan;
+  canCreate?: boolean;
+  freeStoriesUsed?: number;
+  booksThisYear?: number;
+}
+
+export function CreateStoryModal({
+  open,
+  onOpenChange,
+  plan = 'free',
+  canCreate = true,
+  freeStoriesUsed = 0,
+  booksThisYear = 0,
+}: CreateStoryModalProps) {
   const [title, setTitle] = useState('');
   const [ageGroup, setAgeGroup] = useState('6-8');
   const [idea, setIdea] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const storyLimit = plan === 'lifetime' ? FREE_PLAN.lifetimeStoriesPerYear : FREE_PLAN.freeStories;
+  const currentUsage = plan === 'lifetime' ? booksThisYear : freeStoriesUsed;
+
   const handleCreate = async () => {
-    if (!title.trim() || !idea.trim()) return;
+    if (!title.trim() || !idea.trim() || !canCreate) return;
     setLoading(true);
     try {
       console.log('Story created', { title, ageGroup, idea });
@@ -21,6 +41,39 @@ export function CreateStoryModal({ open, onOpenChange }: { open: boolean; onOpen
   };
 
   if (!open) return null;
+
+  if (!canCreate) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <Card className="w-full max-w-xl border border-border bg-card shadow-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Sparkles className="h-5 w-5 text-primary" /> Story limit reached
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5 pt-0">
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+              <p className="text-sm text-muted-foreground">
+                You used {currentUsage}/{storyLimit} stories.
+              </p>
+              <p className="mt-2 text-base font-medium">
+                Upgrade to the lifetime plan for {formatLifetimePrice()} and unlock 100 stories per year plus 4 video exports per month.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
+              <Button className="flex-1" onClick={() => onOpenChange(false)}>
+                Upgrade now
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
@@ -69,15 +122,17 @@ export function CreateStoryModal({ open, onOpenChange }: { open: boolean; onOpen
           </div>
 
           <div className="rounded-xl border border-dashed border-border bg-secondary/40 p-4">
-            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Free plan</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Usage cap</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              2 full stories included. Lifetime is $89 and includes 100 stories per year, 4 videos/month, all future features.
+              {plan === 'free'
+                ? `Free users get ${FREE_PLAN.freeStories} story slots. Lifetime unlocks ${FREE_PLAN.lifetimeStoriesPerYear} stories/year and ${FREE_PLAN.lifetimeVideosPerMonth} video exports/month.`
+                : `Lifetime plan active: ${FREE_PLAN.lifetimeStoriesPerYear} stories/year and ${FREE_PLAN.lifetimeVideosPerMonth} video exports/month.`}
             </p>
           </div>
 
           <div className="flex gap-3">
             <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button className="flex-1" onClick={handleCreate} disabled={!title.trim() || !idea.trim() || loading}>
+            <Button className="flex-1" onClick={handleCreate} disabled={!title.trim() || !idea.trim() || loading || !canCreate}>
               {loading ? 'Generating...' : 'Generate outline'}
             </Button>
           </div>

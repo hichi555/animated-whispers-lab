@@ -77,6 +77,32 @@ export function canCreateVideo({
   return false;
 }
 
+export function getPlanUsageState({
+  plan,
+  freeStoriesUsed,
+  booksThisYear,
+  videosThisMonth,
+}: {
+  plan: UserPlan;
+  freeStoriesUsed: number;
+  booksThisYear: number;
+  videosThisMonth: number;
+}) {
+  const storyLimit = plan === 'lifetime' ? FREE_PLAN.lifetimeStoriesPerYear : FREE_PLAN.freeStories;
+  const storyUsed = plan === 'lifetime' ? booksThisYear : freeStoriesUsed;
+  const videoLimit = plan === 'lifetime' ? FREE_PLAN.lifetimeVideosPerMonth : 0;
+
+  return {
+    storyLimit,
+    storyUsed,
+    storyRemaining: Math.max(0, storyLimit - storyUsed),
+    videoLimit,
+    videosThisMonth,
+    canCreateStory: canCreateStory({ plan, freeStoriesUsed, booksThisYear }),
+    canCreateVideo: canCreateVideo({ plan, videosThisMonth }),
+  };
+}
+
 export function getPlanStatusText(plan: UserPlan): string {
   if (plan === 'lifetime') {
     return 'Lifetime access • 100 books/year • 4 videos/month';
@@ -87,6 +113,10 @@ export function getPlanStatusText(plan: UserPlan): string {
 
 export function formatLifetimePrice() {
   return `$${FREE_PLAN.lifetimePrice.toFixed(2)}`;
+}
+
+export function formatPlanName(plan: UserPlan) {
+  return plan === 'lifetime' ? 'Lifetime' : 'Free';
 }
 
 export default FREE_PLAN;
