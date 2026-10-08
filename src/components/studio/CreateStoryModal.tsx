@@ -1,106 +1,90 @@
-import { Dispatch, SetStateAction, useState } from 'react';
+import { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Sparkles } from 'lucide-react';
 
-interface CreateStoryModalProps {
-  open: boolean;
-  onOpenChange: Dispatch<SetStateAction<boolean>>;
-}
-
-export function CreateStoryModal({ open, onOpenChange }: CreateStoryModalProps) {
+export function CreateStoryModal({ open, onOpenChange }: { open: boolean; onOpenChange: (next: boolean) => void }) {
   const [title, setTitle] = useState('');
   const [ageGroup, setAgeGroup] = useState('6-8');
   const [idea, setIdea] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleCreate = async () => {
-    if (!title || !idea) {
-      return;
-    }
-
+    if (!title.trim() || !idea.trim()) return;
     setLoading(true);
     try {
-      // TODO: Call API to create story
-      console.log('Creating story:', { title, ageGroup, idea });
+      console.log('Story created', { title, ageGroup, idea });
       onOpenChange(false);
     } finally {
       setLoading(false);
     }
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+      <Card className="w-full max-w-2xl border border-border bg-card shadow-2xl">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-xl">
             <Sparkles className="h-5 w-5 text-primary" /> Create new story
-          </DialogTitle>
-        </DialogHeader>
-
-        <Card className="border-0 shadow-none">
-          <CardContent className="space-y-6 pt-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Story title *</label>
-                <input
-                  type="text"
-                  placeholder="The Night the Lantern Bloomed"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-card px-4 py-2 text-sm transition-colors focus:border-primary focus:outline-none"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Age group *</label>
-                <select
-                  value={ageGroup}
-                  onChange={(e) => setAgeGroup(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-card px-4 py-2 text-sm transition-colors focus:border-primary focus:outline-none"
-                >
-                  <option value="3-5">3-5 years old</option>
-                  <option value="6-8">6-8 years old</option>
-                  <option value="9-12">9-12 years old</option>
-                  <option value="13+">13+ years old</option>
-                </select>
-              </div>
-            </div>
-
+          </CardTitle>
+          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
+        </CardHeader>
+        <CardContent className="space-y-6 pt-0">
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="block text-sm font-medium">Core story idea *</label>
-              <textarea
-                rows={5}
-                placeholder="A shy fox learns to shine in a town that only feels safe in the dark..."
-                value={idea}
-                onChange={(e) => setIdea(e.target.value)}
-                className="w-full rounded-lg border border-border bg-card px-4 py-2 text-sm transition-colors focus:border-primary focus:outline-none"
+              <label className="block text-sm font-medium">Story title</label>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="The Night the Lantern Bloomed"
+                className="w-full rounded-lg border border-border bg-card px-4 py-2 text-sm outline-none ring-0 focus:border-primary"
               />
             </div>
-
-            <div className="rounded-lg border border-dashed border-border bg-secondary/30 p-4">
-              <p className="text-xs uppercase tracking-[0.1em] font-medium text-muted-foreground mb-2">✨ Premium outline generation</p>
-              <p className="text-sm text-muted-foreground">
-                Our editorial engine will create a page-by-page outline, character suggestions, and illustration prompts—all optimized for your age group.
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button
-                className="flex-1 gap-2"
-                onClick={handleCreate}
-                disabled={!title || !idea || loading}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Age group</label>
+              <select
+                value={ageGroup}
+                onChange={(e) => setAgeGroup(e.target.value)}
+                className="w-full rounded-lg border border-border bg-card px-4 py-2 text-sm outline-none ring-0 focus:border-primary"
               >
-                <Sparkles className="h-4 w-4" />
-                {loading ? 'Generating...' : 'Generate outline'}
-              </Button>
+                <option value="3-5">3-5</option>
+                <option value="6-8">6-8</option>
+                <option value="9-12">9-12</option>
+                <option value="13+">13+</option>
+              </select>
             </div>
-          </CardContent>
-        </Card>
-      </DialogContent>
-    </Dialog>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Core idea</label>
+            <textarea
+              rows={6}
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
+              placeholder="A shy fox learns to shine in a town that only feels safe in the dark..."
+              className="w-full rounded-lg border border-border bg-card px-4 py-2 text-sm outline-none ring-0 focus:border-primary"
+            />
+          </div>
+
+          <div className="rounded-xl border border-dashed border-border bg-secondary/40 p-4">
+            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Free plan</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              2 full stories included. Lifetime is $89 and includes 100 stories per year, 4 videos/month, all future features.
+            </p>
+          </div>
+
+          <div className="flex gap-3">
+            <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button className="flex-1" onClick={handleCreate} disabled={!title.trim() || !idea.trim() || loading}>
+              {loading ? 'Generating...' : 'Generate outline'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
+
+export default CreateStoryModal;
