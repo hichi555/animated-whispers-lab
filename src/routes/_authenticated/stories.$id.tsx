@@ -53,7 +53,7 @@ function Editor() {
         </div>
         <div className="flex flex-wrap gap-2"><Button disabled={!pages.length} onClick={() => setReading(true)}><BookOpen/> Read book</Button><Button variant="outline" disabled={!pages.length} onClick={() => window.print()}><Printer/> Print / PDF</Button><Button variant="ghost" size="icon" title="Delete book" aria-label="Delete book" onClick={remove}><Trash2 className="h-4 w-4" /></Button></div>
       </div>
-      {reading && <BookReader title={story.title} pages={pages} onClose={() => setReading(false)}/>}
+      {reading && <BookReader title={story.title} pages={pages} coverPath={story.cover_url} onClose={() => setReading(false)}/>}
       <div className="mb-6 flex gap-2" role="group" aria-label="Editor view"><Button variant={view === "book" ? "default" : "outline"} aria-pressed={view === "book"} onClick={() => setView("book")}><BookOpen/> Book pages</Button><Button variant={view === "video" ? "default" : "outline"} aria-pressed={view === "video"} onClick={() => setView("video")}><Clapperboard/> Video storyboard</Button></div>
       {view === "video" ? <StoryVideo pages={pages} title={story.title}/> : <div className="space-y-6">{pages.map((p) => <PageCard key={`${p.id}:${p.text}`} page={p} story={story} />)}</div>}
       <PrintBook title={story.title} pages={pages}/>
