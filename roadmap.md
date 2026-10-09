@@ -1,4 +1,6 @@
 # Studio refinement
+- [ ] Current request: improve sign-in/out, reader illustration and live saving, reader and studio polish
+- [ ] Generate and verify a new illustrated book through the signed-in creation flow
 - [x] Stable studio header and non-scrolling mobile navigation
 - [x] Nine uploaded illustration-style references wired to selectable art directions
 - [ ] Missing-style original artwork — generation and visual review still needed
