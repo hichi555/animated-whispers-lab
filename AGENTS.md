@@ -15,6 +15,8 @@
 - Map illustration-style editorial artwork in a shared client-safe catalog so selectors use the same reference images.
 
 - Reader position is stored per story locally; never persist signed URLs or narration media in browser storage, to keep private media access scoped.
+- Reader page illustration uses a shared client hook to generate from saved story text, save private artwork and refresh the book and cover together.
+- Sign-out cancels private reads and clears query caches before returning to the public sign-in page, preventing cross-account cache leakage.
 - Storyboard scenes use the same story_pages records as the book editor; script changes invalidate narration to prevent stale spoken content.
 - Browser video export produces silent 1080p WebM from private illustrations; print uses a dedicated paginated layout without storing signed URLs.
 - Consented custom voices are created and synthesized through ElevenLabs on authenticated server functions; provider IDs are ownership-checked before use.

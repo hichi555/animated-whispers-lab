@@ -33,13 +33,12 @@ function Studio() {
   return (
     <div>
       <PageHeader eyebrow="Studio" title="Your story studio" actions={<Button asChild><Link to="/stories/new">New story</Link></Button>} />
-      <div className="production-desk mb-8 border-y py-7"><div><p className="text-xs font-semibold uppercase text-primary">Production desk</p><h2 className="mt-2 text-2xl font-semibold">Take a story from first idea to final frame</h2><p className="mt-2 max-w-xl text-sm text-muted-foreground">Build the cast, choose a narrator, illustrate every scene, then shape the pacing in the film workspace.</p></div><div className="production-steps">{[{label:"Cast",done:cast>0},{label:"Voice",done:voices>0},{label:"Story",done:stories.length>0},{label:"Film",done:stories.some(s=>s.status==="complete")}].map((step)=><div key={step.label}>{step.done?<CheckCircle2/>:<Circle/>}<span>{step.label}</span></div>)}</div>{stories[0] ? <Button asChild><Link to="/stories/$id" params={{id:stories[0].id}}>Continue production<ArrowRight/></Link></Button> : <Button asChild><Link to="/stories/new">Start a story<ArrowRight/></Link></Button>}</div>
+      <div className="production-desk mb-8 border-y py-7"><div><p className="text-xs font-semibold uppercase text-primary">On your desk</p><h2 className="mt-2 text-2xl font-semibold">{stories[0]?.title ?? "Your next story starts here"}</h2><p className="mt-2 max-w-xl text-sm text-muted-foreground">{stories[0] ? `Ages ${stories[0].age_range} · ${stories[0].art_style} · ${stories[0].voice}` : "Books, characters and voices"}</p></div><div className="production-steps">{[{label:"Cast",done:cast>0},{label:"Voice",done:voices>0},{label:"Story",done:stories.length>0},{label:"Film",done:stories.some(s=>s.status==="complete")}].map((step)=><div key={step.label}>{step.done?<CheckCircle2/>:<Circle/>}<span>{step.label}</span></div>)}</div>{stories[0] ? <Button asChild><Link to="/stories/$id" params={{id:stories[0].id}}>Continue book<ArrowRight/></Link></Button> : <Button asChild><Link to="/stories/new">Start a story<ArrowRight/></Link></Button>}</div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {tiles.map((t) => (
           <Link key={t.to} to={t.to} className="rounded-2xl border bg-card p-6 shadow-soft transition hover:-translate-y-0.5">
             <t.icon className="h-6 w-6 text-primary" />
             <h3 className="mt-4 text-lg font-semibold">{t.title}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{t.body}</p>
           </Link>
         ))}
       </div>
