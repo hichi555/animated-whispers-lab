@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { BookOpen, ImageIcon, Volume2, Trash2, Printer, Clapperboard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,8 @@ import { BookReader } from "@/components/BookReader";
 import { StoryVideo } from "@/components/StoryVideo";
 import { PrintBook } from "@/components/PrintBook";
 import { Textarea } from "@/components/ui/textarea";
+import { usePageIllustration } from "@/hooks/use-page-illustration";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/stories/$id")({
   head: () => ({ meta: [{ title: "Book editor — CyliaTales" }, { name: "robots", content: "noindex" }, { name: "description", content: "Edit illustrations and story text, save narration and read your book." }, { property: "og:title", content: "Book editor — CyliaTales" }, { property: "og:description", content: "Edit illustrations and story text, save narration and read your book." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
@@ -25,6 +27,9 @@ function Editor() {
   const { id } = Route.useParams();
   const [reading, setReading] = useState(false);
   const [view, setView] = useState<"book" | "video">("book");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const cache = useQueryClient();
   const { data: story } = useQuery({
     queryKey: ["story", id],
     queryFn: async () => (await supabase.from("stories").select("*").eq("id", id).single()).data,
@@ -34,13 +39,19 @@ function Editor() {
     queryFn: async () => (await supabase.from("story_pages").select("*").eq("story_id", id).order("page_number")).data ?? [],
   });
   const nav = useNavigate();
+  const { illustrate, drawingPage } = usePageIllustration(story);
   if (!story) return <p className="text-muted-foreground">Opening book…</p>;
 
   async function remove() {
-    if (!confirm("Delete this book?")) return;
-    await supabase.from("story_pages").delete().eq("story_id", id);
-    await supabase.from("stories").delete().eq("id", id);
-    nav({ to: "/stories" });
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from("stories").delete().eq("id", id);
+      if (error) throw error;
+      await cache.invalidateQueries({ queryKey: ["stories"] });
+      toast.success("Book deleted");
+      await nav({ to: "/stories" });
+    } catch (error) { toast.error((error as Error).message); }
+    finally { setDeleting(false); }
   }
 
   return (
@@ -51,11 +62,12 @@ function Editor() {
           <h1 className="text-4xl font-semibold">{story.title}</h1>
           <p className="mt-1 text-muted-foreground">Ages {story.age_range} · {story.art_style} · Narrated by {story.voice}</p>
         </div>
-        <div className="flex flex-wrap gap-2"><Button disabled={!pages.length} onClick={() => setReading(true)}><BookOpen/> Read book</Button><Button variant="outline" disabled={!pages.length} onClick={() => window.print()}><Printer/> Print / PDF</Button><Button variant="ghost" size="icon" title="Delete book" aria-label="Delete book" onClick={remove}><Trash2 className="h-4 w-4" /></Button></div>
+        <div className="flex flex-wrap gap-2"><Button disabled={!pages.length} onClick={() => setReading(true)}><BookOpen/> Read book</Button><Button variant="outline" disabled={!pages.length} onClick={() => window.print()}><Printer/> Print / PDF</Button><Button variant="ghost" size="icon" title="Delete book" aria-label="Delete book" onClick={() => setDeleteOpen(true)}><Trash2 className="h-4 w-4" /></Button></div>
       </div>
-      {reading && <BookReader title={story.title} pages={pages} coverPath={story.cover_url} onClose={() => setReading(false)}/>}
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete “{story.title}”?</AlertDialogTitle><AlertDialogDescription>This permanently removes the book and its pages. This cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={deleting}>Keep book</AlertDialogCancel><AlertDialogAction disabled={deleting} onClick={(e) => { e.preventDefault(); void remove(); }}>{deleting ? "Deleting…" : "Delete book"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      {reading && <BookReader title={story.title} pages={pages} storyId={story.id} coverPath={story.cover_url} onIllustrate={illustrate} drawingPage={drawingPage} onClose={() => setReading(false)}/>}
       <div className="mb-6 flex gap-2" role="group" aria-label="Editor view"><Button variant={view === "book" ? "default" : "outline"} aria-pressed={view === "book"} onClick={() => setView("book")}><BookOpen/> Book pages</Button><Button variant={view === "video" ? "default" : "outline"} aria-pressed={view === "video"} onClick={() => setView("video")}><Clapperboard/> Video storyboard</Button></div>
-      {view === "video" ? <StoryVideo pages={pages} title={story.title}/> : <div className="space-y-6">{pages.map((p) => <PageCard key={`${p.id}:${p.text}`} page={p} story={story} />)}</div>}
+      {view === "video" ? <StoryVideo pages={pages} title={story.title}/> : <div className="space-y-6">{pages.map((p) => <PageCard key={p.id} page={p} story={story} />)}</div>}
       <PrintBook title={story.title} pages={pages}/>
     </div>
   );
@@ -72,6 +84,13 @@ function PageCard({ page, story }: { page: Tables<"story_pages">; story: Tables<
   const [busy, setBusy] = useState<"img" | "voice" | null>(null);
   const savedAudio = useMediaUrl(page.audio_url);
   const [audio, setAudio] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState("Saved");
+  const savedText = useRef(page.text);
+  useEffect(() => {
+    if (text === savedText.current) return;
+    const timer = setTimeout(() => { void save(); }, 700);
+    return () => clearTimeout(timer);
+  }, [text]);
 
   async function illustrate() {
     if (!user) return;
@@ -84,12 +103,14 @@ function PageCard({ page, story }: { page: Tables<"story_pages">; story: Tables<
         referencePaths = (cast ?? []).flatMap(c => [c.portrait_url, c.reference_url]).filter((p): p is string => !!p).slice(0, 6);
         castNote = (cast ?? []).map(c => `${c.name}: ${[c.appearance, c.outfit, c.palette].filter(Boolean).join(", ")}`).join("; ");
       }
-      const { b64 } = await img({ data: { prompt: `${page.image_prompt ?? text}${castNote ? `. Characters: ${castNote}` : ""}`, style: story.art_style, referencePaths } });
+      const { b64 } = await img({ data: { prompt: `Draw this exact story text: ${text}. Art direction: ${page.image_prompt ?? ""}${castNote ? `. Characters: ${castNote}` : ""}`, style: story.art_style, referencePaths } });
       const path = await uploadBase64(user.id, "pages", b64);
-      await supabase.from("story_pages").update({ image_url: path }).eq("id", page.id);
+      const { error } = await supabase.from("story_pages").update({ image_url: path }).eq("id", page.id);
+      if (error) throw error;
       if (page.page_number === 1 && !story.cover_url) await supabase.from("stories").update({ cover_url: path }).eq("id", story.id);
       qc.invalidateQueries({ queryKey: ["pages", story.id] });
       qc.invalidateQueries({ queryKey: ["stories"] });
+      qc.invalidateQueries({ queryKey: ["story", story.id] });
     } catch (e) { toast.error((e as Error).message); } finally { setBusy(null); }
   }
 
@@ -117,9 +138,12 @@ function PageCard({ page, story }: { page: Tables<"story_pages">; story: Tables<
   }
 
   async function save() {
-    if (text === page.text) return;
+    if (text === savedText.current) return;
+    setSaveState("Saving…");
     const { error } = await supabase.from("story_pages").update({ text, audio_url: null }).eq("id", page.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) { setSaveState("Not saved"); toast.error(error.message); return; }
+    savedText.current = text;
+    setSaveState("Saved");
     setAudio(null);
     qc.invalidateQueries({ queryKey: ["pages", story.id] });
   }
@@ -132,8 +156,8 @@ function PageCard({ page, story }: { page: Tables<"story_pages">; story: Tables<
         )}
       </div>
       <div className="flex flex-col p-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Page {page.page_number}</p>
-        <Textarea className="mt-2 flex-1 font-display text-lg" rows={5} value={text} onChange={(e) => setText(e.target.value)} onBlur={save} />
+        <div className="flex justify-between text-xs text-muted-foreground"><p className="font-semibold uppercase">Page {page.page_number}</p><span role="status">{saveState}</span></div>
+        <Textarea className="mt-2 flex-1 font-display text-lg" rows={5} value={text} onChange={(e) => { setText(e.target.value); setSaveState("Unsaved"); }} onBlur={save} />
         <div className="mt-3 flex flex-wrap gap-2">
           <Button size="sm" variant="outline" disabled={!!busy} onClick={listen}><Volume2 className="h-4 w-4" /> {busy === "voice" ? "Recording…" : "Narrate"}</Button>
           {url && <Button size="sm" variant="ghost" disabled={!!busy} onClick={illustrate}>{busy === "img" ? "Painting…" : "Redraw"}</Button>}
