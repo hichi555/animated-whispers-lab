@@ -242,6 +242,63 @@ export type Database = {
           },
         ]
       }
+      story_page_versions: {
+        Row: {
+          id: string
+          story_page_id: string
+          story_id: string
+          user_id: string
+          version_number: number
+          text: string
+          image_prompt: string | null
+          image_url: string | null
+          audio_url: string | null
+          shot_type: string
+          camera_motion: string
+          duration_seconds: number
+          motion_prompt: string | null
+          motion_status: string
+          motion_url: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          story_page_id: string
+          story_id: string
+          user_id?: string
+          version_number: number
+          text?: string
+          image_prompt?: string | null
+          image_url?: string | null
+          audio_url?: string | null
+          shot_type?: string
+          camera_motion?: string
+          duration_seconds?: number
+          motion_prompt?: string | null
+          motion_status?: string
+          motion_url?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          story_page_id?: string
+          story_id?: string
+          user_id?: string
+          version_number?: number
+          text?: string
+          image_prompt?: string | null
+          image_url?: string | null
+          audio_url?: string | null
+          shot_type?: string
+          camera_motion?: string
+          duration_seconds?: number
+          motion_prompt?: string | null
+          motion_status?: string
+          motion_url?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      },
       voice_profiles: {
         Row: {
           consent_confirmed: boolean
