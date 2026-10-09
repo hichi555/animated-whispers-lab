@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { SignOutButton } from "@/components/SignOutButton";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -60,13 +61,11 @@ function StudioLayout() {
         </nav>
         <div className="border-t border-sidebar-border pt-4">
           <p className="truncate px-3 text-xs text-sidebar-foreground/60">{user?.email}</p>
-          <Button variant="ghost" onClick={() => supabase.auth.signOut()} className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent">
-            <LogOut className="h-4 w-4" /> Sign out
-          </Button>
+          <SignOutButton />
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="studio-topbar"><div className="md:hidden"><Logo /></div><p className="hidden text-xs font-semibold uppercase text-muted-foreground md:block">CyliaTales / Story studio</p><Button asChild variant="outline" size="sm"><Link to="/stories/new"><PenTool/> New story</Link></Button></header>
+        <header className="studio-topbar"><div className="md:hidden"><Logo /></div><p className="hidden text-xs font-semibold uppercase text-muted-foreground md:block">CyliaTales / Story studio</p><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link to="/stories/new"><PenTool/> New story</Link></Button><div className="md:hidden"><SignOutButton compact /></div></div></header>
         <nav aria-label="Studio pages" className="studio-mobile-nav md:hidden">{NAV.map(g => g.items.map(i => <Link key={i.to} to={i.to} activeOptions={{exact: true}} activeProps={{className: "text-primary bg-secondary"}}><i.icon className="h-4 w-4"/>{i.label}</Link>))}</nav>
         <main className="flex-1 px-5 py-8 md:px-10"><Outlet /></main>
       </div>
