@@ -230,11 +230,11 @@
 
 /* Flip book */
 .flip-stage { flex: 1; display: grid; place-items: center; min-height: 0; }
-.flip-book { box-shadow: 0 40px 80px -30px color-mix(in oklch, var(--foreground) 45%, transparent); }
+.flip-book { box-shadow: 0 40px 80px -30px color-mix(in oklch, var(--foreground) 45%, transparent), 0 0 0 1px color-mix(in oklch, var(--foreground) 12%, transparent); }
 .flip-leaf { background: var(--card); overflow: hidden; position: relative; }
 .flip-art { background: var(--muted); }
 .flip-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted-foreground); font-size: 14px; }
-.flip-text { padding: 12% 11%; background: linear-gradient(90deg, color-mix(in oklch, var(--foreground) 7%, var(--card)) 0%, var(--card) 7%); }
+.flip-text { padding: 12% 11%; background: linear-gradient(90deg, color-mix(in oklch, var(--foreground) 8%, var(--card)) 0%, var(--card) 7%, var(--card) 94%, color-mix(in oklch, var(--foreground) 4%, var(--card)) 100%); }
 .flip-prose { max-height: 100%; overflow-y: auto; }
 .flip-prose p { font-family: var(--font-display); font-size: 20px; line-height: 1.75; color: var(--foreground); white-space: pre-line; overflow-wrap: anywhere; }
 .reader-large-type .flip-prose p { font-size: 24px; }
@@ -248,6 +248,6 @@
 .flip-cover-title span { font-size: 11px; letter-spacing: 0; text-transform: uppercase; opacity: .85; }
 .book-reader { background: var(--muted); }
 .book-reader .reader-footer { display: flex; flex-wrap: wrap; justify-content: center; padding-block: 8px; }
-.flip-art img { object-fit: contain; }
+.flip-art img { object-fit: cover; object-position: center; }
 @media(max-width: 767px) { .flip-prose p { font-size: 16px; line-height: 1.6; } .reader-large-type .flip-prose p { font-size: 18px; } .flip-cover-title h1 { font-size: 26px; } .reader-header h2 { max-width: 140px; } }
 .flip-back .flip-cover-title { top: 50%; bottom: auto; transform: translateY(-50%); text-align: center; color: var(--primary-foreground); }
