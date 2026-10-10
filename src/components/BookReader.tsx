@@ -232,6 +232,17 @@ export function BookReader({
           height={dims.h}
           size="fixed"
           autoSize={false}
+          style={{}}
+          minWidth={160}
+          maxWidth={1000}
+          minHeight={213}
+          maxHeight={1400}
+          startZIndex={0}
+          clickEventForward
+          useMouseEvents
+          swipeDistance={30}
+          showPageCorners
+          disableFlipByClick
           startPage={startPage}
           showCover
           maxShadowOpacity={0.45}
