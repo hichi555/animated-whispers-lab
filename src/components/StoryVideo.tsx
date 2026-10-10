@@ -27,7 +27,6 @@ import { startSceneMotion, checkSceneMotion } from "@/lib/studio.functions";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Page = Tables<"story_pages">;
-type PageVersion = Tables<"story_page_versions">;
 
 const MOTION_CLASS: Record<string, string> = {
   "Locked-off": "motion-still",
@@ -390,20 +389,6 @@ function SceneEditor({ page }: { page: Page }) {
   const [starting, setStarting] = useState(false);
   const [progress, setProgress] = useState(0);
   const qc = useQueryClient();
-  const [restoring, setRestoring] = useState<string | null>(null);
-  const { data: versions = [] } = useQuery({
-    queryKey: ["story-page-versions", page.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("story_page_versions")
-        .select("*")
-        .eq("story_page_id", page.id)
-        .order("version_number", { ascending: false })
-        .limit(8);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
   const start = useServerFn(startSceneMotion);
   const check = useServerFn(checkSceneMotion);
   const processing = page.motion_status === "processing";
@@ -437,27 +422,7 @@ function SceneEditor({ page }: { page: Page }) {
     };
   }, [processing, page.id, page.page_number, page.story_id, check, qc]);
 
-  async function snapshot() {
-    const nextVersion = (versions[0]?.version_number ?? 0) + 1;
-    const { error } = await supabase.from("story_page_versions").insert({
-      story_page_id: page.id,
-      story_id: page.story_id,
-      version_number: nextVersion,
-      text: page.text,
-      image_prompt: page.image_prompt,
-      image_url: page.image_url,
-      audio_url: page.audio_url,
-      shot_type: page.shot_type,
-      camera_motion: page.camera_motion,
-      duration_seconds: page.duration_seconds,
-      motion_prompt: page.motion_prompt,
-      motion_status: page.motion_status,
-      motion_url: page.motion_url,
-    });
-    if (error) throw error;
-  }
   async function persist() {
-    await snapshot();
     const { error } = await supabase
       .from("story_pages")
       .update({
@@ -477,39 +442,11 @@ function SceneEditor({ page }: { page: Page }) {
     try {
       await persist();
       await qc.invalidateQueries({ queryKey: ["pages", page.story_id] });
-      await qc.invalidateQueries({ queryKey: ["story-page-versions", page.id] });
-      toast.success("Scene saved as a new version");
+      toast.success("Scene saved");
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
       setSaving(false);
-    }
-  }
-  async function restore(version: PageVersion) {
-    setRestoring(version.id);
-    try {
-      const { error } = await supabase
-        .from("story_pages")
-        .update({
-          text: version.text,
-          image_prompt: version.image_prompt,
-          image_url: version.image_url,
-          audio_url: version.audio_url,
-          shot_type: version.shot_type,
-          camera_motion: version.camera_motion,
-          duration_seconds: version.duration_seconds,
-          motion_prompt: version.motion_prompt,
-          motion_status: version.motion_status,
-          motion_url: version.motion_url,
-        })
-        .eq("id", page.id);
-      if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["pages", page.story_id] });
-      toast.success(`Restored scene version ${version.version_number}`);
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setRestoring(null);
     }
   }
   async function animate() {
@@ -610,7 +547,7 @@ function SceneEditor({ page }: { page: Page }) {
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" onClick={save} disabled={saving}>
           <Save />
-          {saving ? "Saving…" : "Save version"}
+          {saving ? "Saving…" : "Save scene"}
         </Button>
         <Button onClick={animate} disabled={starting || processing || !page.image_url}>
           {processing || starting ? <Loader2 className="animate-spin" /> : <Sparkles />}
@@ -621,40 +558,6 @@ function SceneEditor({ page }: { page: Page }) {
               : "Animate scene"}
         </Button>
       </div>
-      {versions.length > 0 && (
-        <div className="border-t pt-4">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <History className="h-4 w-4 text-primary" /> Version history{" "}
-            <span className="text-xs font-normal text-muted-foreground">
-              {versions.length} saved
-            </span>
-          </div>
-          <div className="mt-3 space-y-2">
-            {versions.map((version) => (
-              <div
-                key={version.id}
-                className="flex items-center gap-3 rounded-lg border px-3 py-2 text-sm"
-              >
-                <span className="font-mono text-xs text-muted-foreground">
-                  v{version.version_number}
-                </span>
-                <span className="min-w-0 flex-1 truncate text-muted-foreground">
-                  {version.text || "Untitled scene"}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => restore(version)}
-                  disabled={Boolean(restoring)}
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  {restoring === version.id ? "Restoring…" : "Restore"}
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
       {page.motion_status === "failed" && page.motion_error && (
         <p className="text-sm text-destructive">
           {page.motion_error} If the illustration may be the cause, try regenerating it.
