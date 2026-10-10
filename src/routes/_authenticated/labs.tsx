@@ -76,6 +76,7 @@ function Labs() {
     queryKey: ["production-pages", selected?.id],
     enabled: Boolean(selected?.id),
     queryFn: async () => {
+      if (!selected) return [];
       const { data, error } = await supabase
         .from("story_pages")
         .select("*")
@@ -112,7 +113,7 @@ function Labs() {
       />
       {isLoading ? (
         <ProductionSkeleton />
-      ) : !stories.length ? (
+       ) : !selected ? (
         <EmptyDesk />
       ) : (
         <>
