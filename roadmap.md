@@ -1,4 +1,5 @@
 # Studio refinement
+- [ ] Current request: panoramic reader, missing character portraits, full illustrated/narrated book, one verified narrated 1080p scene, competitive feature polish
 - [ ] Current request: improve sign-in/out, reader illustration and live saving, reader and studio polish
 - [ ] Generate and verify a new illustrated book through the signed-in creation flow
 - [x] Stable studio header and non-scrolling mobile navigation
