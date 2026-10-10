@@ -224,7 +224,7 @@ export function BookReader({
           ))}
         </nav>
       )}
-      <div className="flip-stage">
+      <div className={`flip-stage ${current === 0 ? "reader-front-closed" : current >= total - 1 ? "reader-back-closed" : ""}`}>
         <Flip
           ref={book}
           key={`${storyId}:${dims.w}x${dims.h}:${startPage}`}

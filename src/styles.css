@@ -230,7 +230,9 @@
 
 /* Flip book */
 .flip-stage { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; width: 100%; }
-.flip-book { box-shadow: 0 40px 80px -30px color-mix(in oklch, var(--foreground) 45%, transparent), 0 0 0 1px color-mix(in oklch, var(--foreground) 12%, transparent); }
+.flip-book { filter: drop-shadow(0 24px 28px color-mix(in oklch, var(--foreground) 24%, transparent)); transition: transform 700ms ease; }
+.reader-front-closed .flip-book { transform: translateX(-25%); }
+.reader-back-closed .flip-book { transform: translateX(25%); }
 .flip-leaf { background: var(--card); overflow: hidden; position: relative; }
 .flip-art { background: var(--muted); }
 .flip-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted-foreground); font-size: 14px; }
@@ -257,4 +259,5 @@
 .flip-story-panel { position: absolute; inset-inline: 7%; bottom: 9%; max-height: 65%; padding: 20px; border-radius: 4px; background: color-mix(in oklch, var(--card) 95%, transparent); box-shadow: var(--shadow-soft); }
 .flip-story-panel p { font-family: var(--font-sans); font-size: 18px; line-height: 1.65; }
 .flip-panorama-right .flip-folio { color: var(--primary-foreground); text-shadow: 0 1px 3px var(--foreground); }
-@media(max-width: 767px) { .flip-panorama-left > img, .flip-panorama-right > img { width: 100%; } .flip-story-panel { padding: 12px; max-height: 72%; } .flip-story-panel p { font-size: 14px; } }
+@media(max-width: 767px) { .reader-front-closed .flip-book, .reader-back-closed .flip-book { transform: none; } .flip-panorama-left > img, .flip-panorama-right > img { width: 100%; } .flip-story-panel { padding: 12px; max-height: 72%; } .flip-story-panel p { font-size: 14px; } }
+@media(prefers-reduced-motion: reduce) { .flip-book { transition: none; } }
