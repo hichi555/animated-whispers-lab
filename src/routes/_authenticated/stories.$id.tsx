@@ -65,6 +65,10 @@ function Editor() {
   const [view, setView] = useState<"book" | "video">("book");
   const [deleting, setDeleting] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [narrating, setNarrating] = useState(0);
+  const speak = useServerFn(narrate);
+  const customSpeak = useServerFn(narrateWithClonedVoice);
+  const { user } = useAuth();
   const cache = useQueryClient();
   const { data: story } = useQuery({
     queryKey: ["story", id],
@@ -90,6 +94,28 @@ function Editor() {
   const nav = useNavigate();
   const { illustrate, drawingPage } = usePageIllustration(story);
   if (!story) return <p className="text-muted-foreground">Opening book…</p>;
+
+  async function narrateBook() {
+    if (!story || !user) return;
+    try {
+      let voiceId: string | null = null;
+      if (story.voice_profile_id) {
+        const { data, error } = await supabase.from("voice_profiles").select("provider_voice_id").eq("id", story.voice_profile_id).single();
+        if (error) throw error;
+        voiceId = data.provider_voice_id;
+      }
+      for (const page of pages.filter((p) => !p.audio_url)) {
+        setNarrating(page.page_number);
+        const result = voiceId ? await customSpeak({ data: { text: page.text, voiceId } }) : await speak({ data: { text: page.text, voice: voiceEngine(story.voice) } });
+        const path = await uploadBase64(user.id, "narration", result.b64, result.mime);
+        const { error } = await supabase.from("story_pages").update({ audio_url: path }).eq("id", page.id);
+        if (error) throw error;
+        await cache.invalidateQueries({ queryKey: ["pages", id] });
+      }
+      toast.success("Every page has saved narration");
+    } catch (error) { toast.error((error as Error).message); }
+    finally { setNarrating(0); }
+  }
 
   async function remove() {
     setDeleting(true);
@@ -121,6 +147,9 @@ function Editor() {
         <div className="flex flex-wrap gap-2">
           <Button disabled={!pages.length} onClick={() => setReading(true)}>
             <BookOpen /> Read book
+          </Button>
+          <Button variant="outline" disabled={!pages.length || !!narrating || pages.every((p) => !!p.audio_url)} onClick={narrateBook}>
+            <Volume2 /> {narrating ? `Narrating ${narrating}/${pages.length}…` : "Narrate all pages"}
           </Button>
           <Button variant="outline" disabled={!pages.length} onClick={() => window.print()}>
             <Printer /> Print / PDF

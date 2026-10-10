@@ -11,6 +11,7 @@
 
 - Keep authenticated studio navigation within its pathless layout, separate from the public home page, to avoid duplicate chrome.
 - The book reader is a dedicated overlay using private signed media URLs and persisted page narration to preserve reading state and privacy.
+- The page-flip canvas has explicit dimensions with auto sizing disabled; paired leaves crop one shared illustration into a continuous spread.
 - Store uploaded showcase art as CDN asset pointers; these are editorial references, not generated user library records.
 - Map illustration-style editorial artwork in a shared client-safe catalog so selectors use the same reference images.
 

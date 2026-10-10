@@ -105,7 +105,7 @@ function Characters() {
         });
         portrait_url = await uploadBase64(user.id, "characters", b64);
       } catch (err) {
-        toast.error(`Portrait failed: ${(err as Error).message}`);
+        throw new Error(`Portrait not created: ${(err as Error).message}`);
       }
       const { error } = await supabase
         .from("characters")
@@ -242,9 +242,9 @@ function CharCard({ c }: { c: Tables<"characters"> }) {
         ) : (
           <UserRound className="h-10 w-10 text-muted-foreground" />
         )}
-        <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-white/70 bg-card/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary shadow-sm">
+        {url && <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border bg-card/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary shadow-sm">
           <LockKeyhole className="h-3 w-3" /> Identity locked
-        </div>
+        </div>}
         {referenceUrl && (
           <div
             className="absolute bottom-3 right-3 grid h-12 w-12 overflow-hidden rounded-lg border-2 border-white bg-card shadow-md"

@@ -1,5 +1,10 @@
 # Studio refinement
-- [ ] Current request: panoramic reader, missing character portraits, full illustrated/narrated book, one verified narrated 1080p scene, competitive feature polish
+- [x] Large panoramic reader, centered illustrated cover and page-turn audio
+- [x] Restore original atelier/style showcase artwork from broken cross-project pointers
+- [x] Add sequential all-page narration with saved progress and terminal-error stop
+- [ ] Generate full new illustrated/narrated book and verify narrated 1080p motion scene — blocked by exhausted AI credits
+- [ ] Expanded competitor-inspired options/showcases — not completed in this reader/artwork repair
+- [ ] Restore scene version history — migration blocked by pre-existing migration tracking conflict; normal scene saving remains available
 - [ ] Current request: improve sign-in/out, reader illustration and live saving, reader and studio polish
 - [ ] Generate and verify a new illustrated book through the signed-in creation flow
 - [x] Stable studio header and non-scrolling mobile navigation
@@ -8,9 +13,9 @@
 - [x] Record, assign and narrate with a cloned voice
 - [x] Synchronized storyboard, persisted scene editing, narrated preview and silent 1080p WebM export
 - [x] Self-print / save-to-PDF layout and larger book spread
-- [ ] Generated motion video with narration export — requires video service integration and verification
+- [ ] Generated motion video with narration export — wired, verification blocked by exhausted AI credits
 - [x] Consented voice cloning
-- [ ] Image-reference-guided generation — references upload privately, but direct image conditioning remains
+- [x] Image-reference-guided generation wired to private character references
 - [x] Studio navigation and page styling
 - [x] Meaningful puppy story page
 - [x] Book-reading overlay and page-turn sounds

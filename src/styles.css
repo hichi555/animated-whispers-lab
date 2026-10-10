@@ -229,8 +229,10 @@
 @media (prefers-reduced-motion: reduce) { .motion-push, .motion-pan-left, .motion-pan-right { animation: none; } }
 
 /* Flip book */
-.flip-stage { flex: 1; display: grid; place-items: center; min-height: 0; }
-.flip-book { box-shadow: 0 40px 80px -30px color-mix(in oklch, var(--foreground) 45%, transparent), 0 0 0 1px color-mix(in oklch, var(--foreground) 12%, transparent); }
+.flip-stage { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; width: 100%; }
+.flip-book { filter: drop-shadow(0 24px 28px color-mix(in oklch, var(--foreground) 24%, transparent)); transition: transform 700ms ease; }
+.reader-front-closed .flip-book { transform: translateX(-25%); }
+.reader-back-closed .flip-book { transform: translateX(25%); }
 .flip-leaf { background: var(--card); overflow: hidden; position: relative; }
 .flip-art { background: var(--muted); }
 .flip-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted-foreground); font-size: 14px; }
@@ -251,3 +253,11 @@
 .flip-art img { object-fit: cover; object-position: center; }
 @media(max-width: 767px) { .flip-prose p { font-size: 16px; line-height: 1.6; } .reader-large-type .flip-prose p { font-size: 18px; } .flip-cover-title h1 { font-size: 26px; } .reader-header h2 { max-width: 140px; } }
 .flip-back .flip-cover-title { top: 50%; bottom: auto; transform: translateY(-50%); text-align: center; color: var(--primary-foreground); }
+.flip-panorama-left > img, .flip-panorama-right > img { position: absolute; top: 0; width: 200%; max-width: none; height: 100%; object-fit: cover; }
+.flip-panorama-left > img { left: 0; }
+.flip-panorama-right > img { right: 0; }
+.flip-story-panel { position: absolute; inset-inline: 7%; bottom: 9%; max-height: 65%; padding: 20px; border-radius: 4px; background: color-mix(in oklch, var(--card) 95%, transparent); box-shadow: var(--shadow-soft); }
+.flip-story-panel p { font-family: var(--font-sans); font-size: 18px; line-height: 1.65; }
+.flip-panorama-right .flip-folio { color: var(--primary-foreground); text-shadow: 0 1px 3px var(--foreground); }
+@media(max-width: 767px) { .reader-front-closed .flip-book, .reader-back-closed .flip-book { transform: none; } .flip-panorama-left > img, .flip-panorama-right > img { width: 100%; } .flip-story-panel { padding: 12px; max-height: 72%; } .flip-story-panel p { font-size: 14px; } }
+@media(prefers-reduced-motion: reduce) { .flip-book { transition: none; } }

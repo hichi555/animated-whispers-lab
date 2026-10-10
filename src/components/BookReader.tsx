@@ -66,7 +66,7 @@ export function BookReader({
   const audio = useRef<AudioContext | null>(null);
   const [sound, setSound] = useState(true);
   const [current, setCurrent] = useState(0);
-  const [dims, setDims] = useState({ w: 540, h: 700 });
+  const [dims, setDims] = useState({ w: 540, h: 720, compact: false });
   const [contents, setContents] = useState(false);
   const [largeText, setLargeText] = useState(false);
   const [startPage, setStartPage] = useState(0);
@@ -87,12 +87,12 @@ export function BookReader({
   useEffect(() => {
     const fit = () => {
       const compact = window.innerWidth < 768;
-      const h = Math.min(window.innerHeight - (compact ? 205 : 190), 920);
+      const h = Math.min(window.innerHeight - (compact ? 180 : 160), 1000);
       const w = Math.min(
-        Math.round(h * 0.72),
-        Math.floor((window.innerWidth - (compact ? 24 : 96)) / (compact ? 1 : 2)),
+        Math.round(h * 0.75),
+        Math.floor((window.innerWidth - (compact ? 24 : 80)) / (compact ? 1 : 2)),
       );
-      setDims({ w: Math.max(w, 190), h: Math.max(Math.round(w / 0.72), 270) });
+      setDims({ w: Math.max(w, 160), h: Math.max(Math.round(w / 0.75), 213), compact });
     };
     fit();
     const overflow = document.body.style.overflow;
@@ -109,7 +109,6 @@ export function BookReader({
       document.body.style.overflow = overflow;
       window.removeEventListener("resize", fit);
       window.removeEventListener("keydown", key);
-      void audio.current?.close();
     };
   }, [onClose]);
 
@@ -225,19 +224,31 @@ export function BookReader({
           ))}
         </nav>
       )}
-      <div className="flip-stage">
+      <div className={`flip-stage ${current === 0 ? "reader-front-closed" : current >= total - 1 ? "reader-back-closed" : ""}`}>
         <Flip
           ref={book}
-          key={`${dims.w}x${dims.h}`}
+          key={`${storyId}:${dims.w}x${dims.h}:${startPage}`}
           width={dims.w}
           height={dims.h}
           size="fixed"
+          autoSize={false}
+          style={{}}
+          minWidth={160}
+          maxWidth={1000}
+          minHeight={213}
+          maxHeight={1400}
+          startZIndex={0}
+          clickEventForward
+          useMouseEvents
+          swipeDistance={30}
+          showPageCorners
+          disableFlipByClick
           startPage={startPage}
           showCover
           maxShadowOpacity={0.45}
           drawShadow
-          flippingTime={900}
-          usePortrait
+          flippingTime={700}
+          usePortrait={dims.compact}
           mobileScrollSupport
           onFlip={(e: { data: number }) => {
             setCurrent(e.data);
@@ -246,8 +257,8 @@ export function BookReader({
             } catch {
               // localStorage may be unavailable in private browsing mode
             }
-            rustle();
           }}
+          onChangeState={(e: { data: string }) => { if (e.data === "flipping") rustle(); }}
           className="flip-book"
         >
           <Leaf hard className="flip-cover">
@@ -260,11 +271,12 @@ export function BookReader({
             </div>
           </Leaf>
           {pages.flatMap((p) => [
-            <Leaf key={`${p.id}-a`} className="flip-art">
+            <Leaf key={`${p.id}-a`} className="flip-art flip-panorama-left">
               <Art path={p.image_url} alt={`Illustration for page ${p.page_number}`} />
             </Leaf>,
-            <Leaf key={`${p.id}-t`} className="flip-text">
-              <div className="flip-prose">
+            <Leaf key={`${p.id}-t`} className="flip-art flip-panorama-right">
+              <Art path={p.image_url} alt={`Illustration continuation for page ${p.page_number}`} />
+              <div className="flip-prose flip-story-panel">
                 <p>{p.text}</p>
                 <Narration path={p.audio_url} n={p.page_number} />
               </div>
@@ -312,7 +324,7 @@ export function BookReader({
               ? "Cover"
               : current >= total - 1
                 ? "Back cover"
-                : `Spread ${Math.ceil((current - 1) / 2)} of ${Math.ceil(pages.length / 2)}`}
+                 : `Page ${Math.floor((current - 1) / 2) + 1} of ${pages.length}`}
           </span>
           <Button
             size="icon"
