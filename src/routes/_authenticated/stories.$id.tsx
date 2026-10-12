@@ -27,6 +27,7 @@ import { StoryVideo } from "@/components/StoryVideo";
 import { PrintBook } from "@/components/PrintBook";
 import { Textarea } from "@/components/ui/textarea";
 import { usePageIllustration } from "@/hooks/use-page-illustration";
+import { StoryPosterStudio } from "@/components/StoryPosterStudio";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -100,21 +101,33 @@ function Editor() {
     try {
       let voiceId: string | null = null;
       if (story.voice_profile_id) {
-        const { data, error } = await supabase.from("voice_profiles").select("provider_voice_id").eq("id", story.voice_profile_id).single();
+        const { data, error } = await supabase
+          .from("voice_profiles")
+          .select("provider_voice_id")
+          .eq("id", story.voice_profile_id)
+          .single();
         if (error) throw error;
         voiceId = data.provider_voice_id;
       }
       for (const page of pages.filter((p) => !p.audio_url)) {
         setNarrating(page.page_number);
-        const result = voiceId ? await customSpeak({ data: { text: page.text, voiceId } }) : await speak({ data: { text: page.text, voice: voiceEngine(story.voice) } });
+        const result = voiceId
+          ? await customSpeak({ data: { text: page.text, voiceId } })
+          : await speak({ data: { text: page.text, voice: voiceEngine(story.voice) } });
         const path = await uploadBase64(user.id, "narration", result.b64, result.mime);
-        const { error } = await supabase.from("story_pages").update({ audio_url: path }).eq("id", page.id);
+        const { error } = await supabase
+          .from("story_pages")
+          .update({ audio_url: path })
+          .eq("id", page.id);
         if (error) throw error;
         await cache.invalidateQueries({ queryKey: ["pages", id] });
       }
       toast.success("Every page has saved narration");
-    } catch (error) { toast.error((error as Error).message); }
-    finally { setNarrating(0); }
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setNarrating(0);
+    }
   }
 
   async function remove() {
@@ -148,8 +161,13 @@ function Editor() {
           <Button disabled={!pages.length} onClick={() => setReading(true)}>
             <BookOpen /> Read book
           </Button>
-          <Button variant="outline" disabled={!pages.length || !!narrating || pages.every((p) => !!p.audio_url)} onClick={narrateBook}>
-            <Volume2 /> {narrating ? `Narrating ${narrating}/${pages.length}…` : "Narrate all pages"}
+          <Button
+            variant="outline"
+            disabled={!pages.length || !!narrating || pages.every((p) => !!p.audio_url)}
+            onClick={narrateBook}
+          >
+            <Volume2 />{" "}
+            {narrating ? `Narrating ${narrating}/${pages.length}…` : "Narrate all pages"}
           </Button>
           <Button variant="outline" disabled={!pages.length} onClick={() => window.print()}>
             <Printer /> Print / PDF
@@ -166,6 +184,7 @@ function Editor() {
         </div>
       </div>
       <VisualDirection story={story} cast={cast} />
+      <StoryPosterStudio story={story} cast={cast} />
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
