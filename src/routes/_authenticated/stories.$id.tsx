@@ -14,6 +14,7 @@ import {
   UsersRound,
   LockKeyhole,
   Sparkles,
+  Share2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -67,6 +68,7 @@ function Editor() {
   const [deleting, setDeleting] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [narrating, setNarrating] = useState(0);
+  const [publishing, setPublishing] = useState(false);
   const speak = useServerFn(narrate);
   const customSpeak = useServerFn(narrateWithClonedVoice);
   const { user } = useAuth();
@@ -145,6 +147,29 @@ function Editor() {
     }
   }
 
+  async function togglePublish() {
+    setPublishing(true);
+    try {
+      const next = story.visibility === "public" ? "private" : "public";
+      const { error } = await supabase
+        .from("stories")
+        .update({
+          visibility: next,
+          published_at: next === "public" ? new Date().toISOString() : null,
+        })
+        .eq("id", story.id);
+      if (error) throw error;
+      await cache.invalidateQueries({ queryKey: ["story", id] });
+      toast.success(
+        next === "public" ? "Story published to the public shelf" : "Story returned to private",
+      );
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setPublishing(false);
+    }
+  }
+
   return (
     <div className="max-w-5xl">
       <Link to="/stories" className="text-sm text-muted-foreground hover:text-foreground">
@@ -171,6 +196,10 @@ function Editor() {
           </Button>
           <Button variant="outline" disabled={!pages.length} onClick={() => window.print()}>
             <Printer /> Print / PDF
+          </Button>
+          <Button variant="outline" disabled={publishing} onClick={togglePublish}>
+            <Share2 />{" "}
+            {publishing ? "Saving…" : story.visibility === "public" ? "Unpublish" : "Publish"}
           </Button>
           <Button
             variant="ghost"
