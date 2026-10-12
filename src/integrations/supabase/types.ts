@@ -120,6 +120,10 @@ export type Database = {
           user_id: string;
           voice: string;
           voice_profile_id: string | null;
+          visibility: string;
+          published_at: string | null;
+          source_story_id: string | null;
+          branch_type: string;
         };
         Insert: {
           age_range?: string;
@@ -137,6 +141,10 @@ export type Database = {
           user_id?: string;
           voice?: string;
           voice_profile_id?: string | null;
+          visibility?: string;
+          published_at?: string | null;
+          source_story_id?: string | null;
+          branch_type?: string;
         };
         Update: {
           age_range?: string;
@@ -154,6 +162,10 @@ export type Database = {
           user_id?: string;
           voice?: string;
           voice_profile_id?: string | null;
+          visibility?: string;
+          published_at?: string | null;
+          source_story_id?: string | null;
+          branch_type?: string;
         };
         Relationships: [
           {

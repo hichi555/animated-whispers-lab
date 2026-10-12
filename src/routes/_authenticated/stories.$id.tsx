@@ -197,6 +197,11 @@ function Editor() {
           <Button variant="outline" disabled={!pages.length} onClick={() => window.print()}>
             <Printer /> Print / PDF
           </Button>
+          <Button variant="outline" asChild>
+            <Link to="/remix/$id" params={{ id: story.id }}>
+              Continue / remix
+            </Link>
+          </Button>
           <Button variant="outline" disabled={publishing} onClick={togglePublish}>
             <Share2 />{" "}
             {publishing ? "Saving…" : story.visibility === "public" ? "Unpublish" : "Publish"}

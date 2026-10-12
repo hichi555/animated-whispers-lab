@@ -20,6 +20,7 @@ import { Route as AuthenticatedPuppyRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
 import { Route as AuthenticatedVoicesRouteImport } from './routes/_authenticated/voices'
 import { Route as ExploreIdRouteImport } from './routes/explore.$id'
+import { Route as AuthenticatedRemixIdRouteImport } from './routes/_authenticated/remix.$id'
 import { Route as AuthenticatedStoriesIndexRouteImport } from './routes/_authenticated/stories.index'
 import { Route as AuthenticatedStoriesIdRouteImport } from './routes/_authenticated/stories.$id'
 import { Route as AuthenticatedStoriesNewRouteImport } from './routes/_authenticated/stories.new'
@@ -78,6 +79,11 @@ const ExploreIdRoute = ExploreIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ExploreRoute,
 } as any)
+const AuthenticatedRemixIdRoute = AuthenticatedRemixIdRouteImport.update({
+  id: '/remix/$id',
+  path: '/remix/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedStoriesIndexRoute =
   AuthenticatedStoriesIndexRouteImport.update({
     id: '/stories/',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/studio': typeof AuthenticatedStudioRoute
   '/voices': typeof AuthenticatedVoicesRoute
   '/explore/$id': typeof ExploreIdRoute
+  '/remix/$id': typeof AuthenticatedRemixIdRoute
   '/stories/$id': typeof AuthenticatedStoriesIdRoute
   '/stories/new': typeof AuthenticatedStoriesNewRoute
   '/stories/': typeof AuthenticatedStoriesIndexRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/studio': typeof AuthenticatedStudioRoute
   '/voices': typeof AuthenticatedVoicesRoute
   '/explore/$id': typeof ExploreIdRoute
+  '/remix/$id': typeof AuthenticatedRemixIdRoute
   '/stories/$id': typeof AuthenticatedStoriesIdRoute
   '/stories/new': typeof AuthenticatedStoriesNewRoute
   '/stories': typeof AuthenticatedStoriesIndexRoute
@@ -138,6 +146,7 @@ export interface FileRoutesById {
   '/_authenticated/studio': typeof AuthenticatedStudioRoute
   '/_authenticated/voices': typeof AuthenticatedVoicesRoute
   '/explore/$id': typeof ExploreIdRoute
+  '/_authenticated/remix/$id': typeof AuthenticatedRemixIdRoute
   '/_authenticated/stories/$id': typeof AuthenticatedStoriesIdRoute
   '/_authenticated/stories/new': typeof AuthenticatedStoriesNewRoute
   '/_authenticated/stories/': typeof AuthenticatedStoriesIndexRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/voices'
     | '/explore/$id'
+    | '/remix/$id'
     | '/stories/$id'
     | '/stories/new'
     | '/stories/'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/voices'
     | '/explore/$id'
+    | '/remix/$id'
     | '/stories/$id'
     | '/stories/new'
     | '/stories'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/_authenticated/studio'
     | '/_authenticated/voices'
     | '/explore/$id'
+    | '/_authenticated/remix/$id'
     | '/_authenticated/stories/$id'
     | '/_authenticated/stories/new'
     | '/_authenticated/stories/'
@@ -277,6 +289,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExploreIdRouteImport
       parentRoute: typeof ExploreRoute
     }
+    '/_authenticated/remix/$id': {
+      id: '/_authenticated/remix/$id'
+      path: '/remix/$id'
+      fullPath: '/remix/$id'
+      preLoaderRoute: typeof AuthenticatedRemixIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/stories/': {
       id: '/_authenticated/stories/'
       path: '/stories'
@@ -308,6 +327,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPuppyRoute: typeof AuthenticatedPuppyRoute
   AuthenticatedStudioRoute: typeof AuthenticatedStudioRoute
   AuthenticatedVoicesRoute: typeof AuthenticatedVoicesRoute
+  AuthenticatedRemixIdRoute: typeof AuthenticatedRemixIdRoute
   AuthenticatedStoriesIdRoute: typeof AuthenticatedStoriesIdRoute
   AuthenticatedStoriesNewRoute: typeof AuthenticatedStoriesNewRoute
   AuthenticatedStoriesIndexRoute: typeof AuthenticatedStoriesIndexRoute
@@ -320,6 +340,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPuppyRoute: AuthenticatedPuppyRoute,
   AuthenticatedStudioRoute: AuthenticatedStudioRoute,
   AuthenticatedVoicesRoute: AuthenticatedVoicesRoute,
+  AuthenticatedRemixIdRoute: AuthenticatedRemixIdRoute,
   AuthenticatedStoriesIdRoute: AuthenticatedStoriesIdRoute,
   AuthenticatedStoriesNewRoute: AuthenticatedStoriesNewRoute,
   AuthenticatedStoriesIndexRoute: AuthenticatedStoriesIndexRoute,
