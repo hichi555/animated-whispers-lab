@@ -12,12 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as AuthenticatedActivitiesRouteImport } from './routes/_authenticated/activities'
 import { Route as AuthenticatedCharactersRouteImport } from './routes/_authenticated/characters'
 import { Route as AuthenticatedLabsRouteImport } from './routes/_authenticated/labs'
 import { Route as AuthenticatedPuppyRouteImport } from './routes/_authenticated/puppy'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
 import { Route as AuthenticatedVoicesRouteImport } from './routes/_authenticated/voices'
+import { Route as ExploreIdRouteImport } from './routes/explore.$id'
 import { Route as AuthenticatedStoriesIndexRouteImport } from './routes/_authenticated/stories.index'
 import { Route as AuthenticatedStoriesIdRouteImport } from './routes/_authenticated/stories.$id'
 import { Route as AuthenticatedStoriesNewRouteImport } from './routes/_authenticated/stories.new'
@@ -34,6 +36,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedActivitiesRoute = AuthenticatedActivitiesRouteImport.update({
@@ -66,6 +73,11 @@ const AuthenticatedVoicesRoute = AuthenticatedVoicesRouteImport.update({
   path: '/voices',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ExploreIdRoute = ExploreIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ExploreRoute,
+} as any)
 const AuthenticatedStoriesIndexRoute =
   AuthenticatedStoriesIndexRouteImport.update({
     id: '/stories/',
@@ -86,12 +98,14 @@ const AuthenticatedStoriesNewRoute = AuthenticatedStoriesNewRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/explore': typeof ExploreRouteWithChildren
   '/activities': typeof AuthenticatedActivitiesRoute
   '/characters': typeof AuthenticatedCharactersRoute
   '/labs': typeof AuthenticatedLabsRoute
   '/puppy': typeof AuthenticatedPuppyRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/voices': typeof AuthenticatedVoicesRoute
+  '/explore/$id': typeof ExploreIdRoute
   '/stories/$id': typeof AuthenticatedStoriesIdRoute
   '/stories/new': typeof AuthenticatedStoriesNewRoute
   '/stories/': typeof AuthenticatedStoriesIndexRoute
@@ -99,12 +113,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/explore': typeof ExploreRouteWithChildren
   '/activities': typeof AuthenticatedActivitiesRoute
   '/characters': typeof AuthenticatedCharactersRoute
   '/labs': typeof AuthenticatedLabsRoute
   '/puppy': typeof AuthenticatedPuppyRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/voices': typeof AuthenticatedVoicesRoute
+  '/explore/$id': typeof ExploreIdRoute
   '/stories/$id': typeof AuthenticatedStoriesIdRoute
   '/stories/new': typeof AuthenticatedStoriesNewRoute
   '/stories': typeof AuthenticatedStoriesIndexRoute
@@ -114,12 +130,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/explore': typeof ExploreRouteWithChildren
   '/_authenticated/activities': typeof AuthenticatedActivitiesRoute
   '/_authenticated/characters': typeof AuthenticatedCharactersRoute
   '/_authenticated/labs': typeof AuthenticatedLabsRoute
   '/_authenticated/puppy': typeof AuthenticatedPuppyRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRoute
   '/_authenticated/voices': typeof AuthenticatedVoicesRoute
+  '/explore/$id': typeof ExploreIdRoute
   '/_authenticated/stories/$id': typeof AuthenticatedStoriesIdRoute
   '/_authenticated/stories/new': typeof AuthenticatedStoriesNewRoute
   '/_authenticated/stories/': typeof AuthenticatedStoriesIndexRoute
@@ -129,12 +147,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/explore'
     | '/activities'
     | '/characters'
     | '/labs'
     | '/puppy'
     | '/studio'
     | '/voices'
+    | '/explore/$id'
     | '/stories/$id'
     | '/stories/new'
     | '/stories/'
@@ -142,12 +162,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/explore'
     | '/activities'
     | '/characters'
     | '/labs'
     | '/puppy'
     | '/studio'
     | '/voices'
+    | '/explore/$id'
     | '/stories/$id'
     | '/stories/new'
     | '/stories'
@@ -156,12 +178,14 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/explore'
     | '/_authenticated/activities'
     | '/_authenticated/characters'
     | '/_authenticated/labs'
     | '/_authenticated/puppy'
     | '/_authenticated/studio'
     | '/_authenticated/voices'
+    | '/explore/$id'
     | '/_authenticated/stories/$id'
     | '/_authenticated/stories/new'
     | '/_authenticated/stories/'
@@ -171,6 +195,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ExploreRoute: typeof ExploreRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -194,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/activities': {
@@ -237,6 +269,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/voices'
       preLoaderRoute: typeof AuthenticatedVoicesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/explore/$id': {
+      id: '/explore/$id'
+      path: '/$id'
+      fullPath: '/explore/$id'
+      preLoaderRoute: typeof ExploreIdRouteImport
+      parentRoute: typeof ExploreRoute
     }
     '/_authenticated/stories/': {
       id: '/_authenticated/stories/'
@@ -289,10 +328,22 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface ExploreRouteChildren {
+  ExploreIdRoute: typeof ExploreIdRoute
+}
+
+const ExploreRouteChildren: ExploreRouteChildren = {
+  ExploreIdRoute: ExploreIdRoute,
+}
+
+const ExploreRouteWithChildren =
+  ExploreRoute._addFileChildren(ExploreRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ExploreRoute: ExploreRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
