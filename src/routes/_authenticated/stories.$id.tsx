@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePageIllustration } from "@/hooks/use-page-illustration";
 import { StoryPosterStudio } from "@/components/StoryPosterStudio";
 import { StoryComicStudio } from "@/components/StoryComicStudio";
+import { ExportDelivery } from "@/components/ExportDelivery";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -221,6 +222,7 @@ function Editor() {
       <VisualDirection story={story} cast={cast} />
       <StoryPosterStudio story={story} cast={cast} />
       <StoryComicStudio story={story} pages={pages} cast={cast} />
+      <ExportDelivery story={story} pages={pages} />
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
