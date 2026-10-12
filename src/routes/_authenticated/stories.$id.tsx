@@ -29,6 +29,7 @@ import { PrintBook } from "@/components/PrintBook";
 import { Textarea } from "@/components/ui/textarea";
 import { usePageIllustration } from "@/hooks/use-page-illustration";
 import { StoryPosterStudio } from "@/components/StoryPosterStudio";
+import { StoryComicStudio } from "@/components/StoryComicStudio";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -219,6 +220,7 @@ function Editor() {
       </div>
       <VisualDirection story={story} cast={cast} />
       <StoryPosterStudio story={story} cast={cast} />
+      <StoryComicStudio story={story} pages={pages} cast={cast} />
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

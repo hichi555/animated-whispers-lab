@@ -177,6 +177,48 @@ export type Database = {
           },
         ];
       };
+      story_panels: {
+        Row: {
+          id: string;
+          story_id: string;
+          page_id: string;
+          user_id: string;
+          panel_number: number;
+          layout: string;
+          text: string;
+          image_prompt: string;
+          image_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          story_id: string;
+          page_id: string;
+          user_id?: string;
+          panel_number: number;
+          layout?: string;
+          text?: string;
+          image_prompt: string;
+          image_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          story_id?: string;
+          page_id?: string;
+          user_id?: string;
+          panel_number?: number;
+          layout?: string;
+          text?: string;
+          image_prompt?: string;
+          image_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       story_pages: {
         Row: {
           audio_url: string | null;
