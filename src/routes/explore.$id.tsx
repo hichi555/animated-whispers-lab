@@ -43,6 +43,8 @@ function PublicReader() {
         pages={pages}
         storyId={story.id}
         coverPath={story.cover_url}
+        onIllustrate={() => undefined}
+        drawingPage={null}
         onClose={() => undefined}
       />
     </main>

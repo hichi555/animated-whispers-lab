@@ -7,6 +7,9 @@
     "dev": "vite dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "typecheck": "tsc --noEmit",
+    "lint:production": "eslint . --quiet --rule 'prettier/prettier: off'",
+    "validate:production": "npm run typecheck && npm run lint:production && npm run build",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write ."

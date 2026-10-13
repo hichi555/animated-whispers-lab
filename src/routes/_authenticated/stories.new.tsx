@@ -147,7 +147,7 @@ function NewStory() {
           art_style: style,
           art_direction_id: directionId,
           art_direction_prompt: directionId
-            ? ART_DIRECTION_BOARDS.find((board) => board.id === directionId)?.prompt
+            ? (ART_DIRECTION_BOARDS.find((board) => board.id === directionId)?.prompt ?? null)
             : null,
           voice,
           voice_profile_id: voiceProfileId,

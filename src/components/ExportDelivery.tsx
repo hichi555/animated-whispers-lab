@@ -33,8 +33,11 @@ function download(blob: Blob, name: string) {
 export function ExportDelivery({ story, pages }: { story: Story; pages: Page[] }) {
   const [busy, setBusy] = useState<"pdf" | "zip" | null>(null);
   const complete = pages.length > 0 && pages.every((p) => Boolean(p.image_url));
-  async function exportPdf() {
-    if (!complete) return toast.error("Every page needs a saved illustration before PDF delivery.");
+  async function exportPdf(): Promise<void> {
+    if (!complete) {
+      toast.error("Every page needs a saved illustration before PDF delivery.");
+      return;
+    }
     setBusy("pdf");
     try {
       const pdf = await PDFDocument.create();
@@ -61,7 +64,7 @@ export function ExportDelivery({ story, pages }: { story: Story; pages: Page[] }
         });
       }
       download(
-        new Blob([await pdf.save()], { type: "application/pdf" }),
+        new Blob([(await pdf.save()).buffer as ArrayBuffer], { type: "application/pdf" }),
         `${safe(story.title)}-cylia-tales.pdf`,
       );
       toast.success("Print-ready PDF downloaded");
@@ -71,8 +74,11 @@ export function ExportDelivery({ story, pages }: { story: Story; pages: Page[] }
       setBusy(null);
     }
   }
-  async function exportZip() {
-    if (!pages.length) return toast.error("This story has no pages to package yet.");
+  async function exportZip(): Promise<void> {
+    if (!pages.length) {
+      toast.error("This story has no pages to package yet.");
+      return;
+    }
     setBusy("zip");
     try {
       const { data: panels = [] } = await supabase
@@ -111,7 +117,7 @@ export function ExportDelivery({ story, pages }: { story: Story; pages: Page[] }
           );
       }
       download(
-        new Blob([zipSync(files)], { type: "application/zip" }),
+        new Blob([zipSync(files).buffer as ArrayBuffer], { type: "application/zip" }),
         `${safe(story.title)}-cylia-tales-assets.zip`,
       );
       toast.success("Complete asset bundle downloaded");

@@ -23,7 +23,10 @@ export async function gatewayError(res: Response) {
   try {
     const j = JSON.parse(body);
     msg = j?.error?.message ?? j?.message ?? body;
-  } catch {}
+  } catch {
+    // Preserve the provider response when it is not JSON.
+    msg = body;
+  }
   if (res.status === 402) return new Error("You're out of AI credits. Add credits to keep creating.");
   if (res.status === 429) return new Error("Lots of requests right now — please try again in a moment.");
   return new Error(`AI request failed (${res.status}): ${String(msg).slice(0, 300)}`);

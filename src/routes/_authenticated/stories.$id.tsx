@@ -150,6 +150,7 @@ function Editor() {
   }
 
   async function togglePublish() {
+    if (!story) return;
     setPublishing(true);
     try {
       const next = story.visibility === "public" ? "private" : "public";

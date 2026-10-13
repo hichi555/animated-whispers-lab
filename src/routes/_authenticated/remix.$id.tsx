@@ -43,6 +43,7 @@ function RemixStory() {
   });
   if (!source) return <p className="text-muted-foreground">Opening story world…</p>;
   async function createPlan() {
+    if (!source) return;
     setBusy(true);
     try {
       const out = await generate({
@@ -69,7 +70,7 @@ function RemixStory() {
     }
   }
   async function approve() {
-    if (!draft || !user) return;
+    if (!draft || !user || !source) return;
     setBusy(true);
     try {
       const { data: story, error } = await supabase
