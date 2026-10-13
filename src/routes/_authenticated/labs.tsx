@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import {
+  Activity,
   ArrowRight,
   AudioLines,
   BookOpen,
@@ -86,6 +87,21 @@ function Labs() {
       return data ?? [];
     },
   });
+  const { data: jobs = [] } = useQuery({
+    queryKey: ["production-jobs", selected?.id],
+    enabled: Boolean(selected?.id),
+    queryFn: async () => {
+      if (!selected) return [];
+      const { data, error } = await supabase
+        .from("story_generation_jobs")
+        .select("*")
+        .eq("story_id", selected.id)
+        .order("created_at", { ascending: false })
+        .limit(8);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
   const stages = selected ? getStages(selected, pages) : [];
   const completed = stages.filter((stage) => stage.done).length;
   const percent = stages.length ? Math.round((completed / stages.length) * 100) : 0;
@@ -113,7 +129,7 @@ function Labs() {
       />
       {isLoading ? (
         <ProductionSkeleton />
-       ) : !selected ? (
+      ) : !selected ? (
         <EmptyDesk />
       ) : (
         <>
@@ -167,6 +183,55 @@ function Labs() {
               </Button>
             </div>
           </div>
+
+          <section
+            className="mt-5 border bg-card p-5 shadow-soft md:p-6"
+            aria-labelledby="job-ledger-title"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                  <Activity className="h-4 w-4" /> Production ledger
+                </p>
+                <h2 id="job-ledger-title" className="mt-2 text-xl font-semibold">
+                  Generation jobs with an accountable state
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Every plan and output records its provider, attempts and final state. No silent
+                  background work.
+                </p>
+              </div>
+              <span className="rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground">
+                {jobs.length} recent job{jobs.length === 1 ? "" : "s"}
+              </span>
+            </div>
+            <div className="mt-5 grid gap-2 md:grid-cols-2">
+              {jobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="flex items-center gap-3 rounded-xl border bg-background/60 p-3"
+                >
+                  <div
+                    className={`h-2.5 w-2.5 rounded-full ${job.status === "completed" ? "bg-accent" : job.status === "failed" ? "bg-destructive" : "bg-primary"}`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{formatJobType(job.job_type)}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {job.provider} · {job.attempts} attempt{job.attempts === 1 ? "" : "s"}
+                    </p>
+                  </div>
+                  <span className="text-xs font-medium capitalize text-muted-foreground">
+                    {job.status}
+                  </span>
+                </div>
+              ))}
+              {!jobs.length && (
+                <p className="text-sm text-muted-foreground">
+                  No generation jobs recorded for this story yet.
+                </p>
+              )}
+            </div>
+          </section>
 
           <section className="mt-10">
             <div className="flex flex-wrap items-end justify-between gap-4">
@@ -276,6 +341,10 @@ function Labs() {
       )}
     </div>
   );
+}
+
+function formatJobType(value: string) {
+  return value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function getStages(story: Story, pages: Page[]): Stage[] {

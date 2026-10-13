@@ -346,6 +346,65 @@ export type Database = {
           },
         ];
       };
+      story_generation_jobs: {
+        Row: {
+          attempts: number;
+          completed_at: string | null;
+          created_at: string;
+          error: string | null;
+          id: string;
+          job_type: string;
+          provider: string;
+          request_payload: Json;
+          result_summary: Json | null;
+          started_at: string | null;
+          status: string;
+          story_id: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          attempts?: number;
+          completed_at?: string | null;
+          created_at?: string;
+          error?: string | null;
+          id?: string;
+          job_type: string;
+          provider?: string;
+          request_payload?: Json;
+          result_summary?: Json | null;
+          started_at?: string | null;
+          status?: string;
+          story_id?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          attempts?: number;
+          completed_at?: string | null;
+          created_at?: string;
+          error?: string | null;
+          id?: string;
+          job_type?: string;
+          provider?: string;
+          request_payload?: Json;
+          result_summary?: Json | null;
+          started_at?: string | null;
+          status?: string;
+          story_id?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "story_generation_jobs_story_id_fkey";
+            columns: ["story_id"];
+            isOneToOne: false;
+            referencedRelation: "stories";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       voice_profiles: {
         Row: {
           consent_confirmed: boolean;

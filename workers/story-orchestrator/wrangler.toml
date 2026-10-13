@@ -1,0 +1,10 @@
+name = "cyliatales-story-orchestrator"
+main = "src/index.ts"
+compatibility_date = "2026-10-13"
+
+[vars]
+# Set secrets with `wrangler secret put`; never commit credential values.
+# SUPABASE_URL, AI_GATEWAY_URL are non-secret configuration values.
+
+[observability]
+enabled = true

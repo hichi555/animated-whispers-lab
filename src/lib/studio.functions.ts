@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { cloudflareWorkerUrl, createStoryJob, updateStoryJob } from "./story-jobs.server";
 
 const StoryInput = z.object({
   idea: z.string().min(3).max(2000),
@@ -16,10 +17,27 @@ const StoryInput = z.object({
 export const generateStory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => StoryInput.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { requireKey, textModel } = await import("./ai-gateway.server");
     const { streamText, Output, NoObjectGeneratedError } = await import("ai");
     const key = requireKey();
+    const jobId = await createStoryJob(context.supabase, {
+      userId: context.userId,
+      jobType: "story_plan",
+      provider: cloudflareWorkerUrl() ? "cloudflare-worker" : "local-gateway",
+      requestPayload: {
+        idea: data.idea,
+        ageRange: data.ageRange,
+        pages: data.pages,
+        artStyle: data.artStyle,
+        characterCount: data.characters.length,
+      },
+    });
+    await updateStoryJob(context.supabase, jobId, {
+      status: "processing",
+      startedAt: new Date().toISOString(),
+      attempts: 1,
+    });
     const cast = data.characters.length
       ? data.characters.map((c) => `- ${c.name}: ${c.description}`).join("\n")
       : "Invent a small, memorable cast.";
@@ -45,8 +63,19 @@ Keep it safe, positive and age-appropriate with a satisfying ending. Title under
         },
       });
       const out = await result.output;
-      return { ...out, pages: out.pages.slice(0, data.pages) };
+      const pages = out.pages.slice(0, data.pages);
+      await updateStoryJob(context.supabase, jobId, {
+        status: "completed",
+        completedAt: new Date().toISOString(),
+        resultSummary: { title: out.title, pageCount: pages.length },
+      });
+      return { ...out, pages, jobId };
     } catch (e) {
+      await updateStoryJob(context.supabase, jobId, {
+        status: "failed",
+        completedAt: new Date().toISOString(),
+        error: e instanceof Error ? e.message : "The story plan failed.",
+      });
       if (NoObjectGeneratedError.isInstance(e)) throw new Error("The story came back incomplete. Please try again.");
       throw e;
     }
