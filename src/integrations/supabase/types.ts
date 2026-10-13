@@ -107,6 +107,8 @@ export type Database = {
         Row: {
           age_range: string;
           art_style: string;
+          art_direction_id: string | null;
+          art_direction_prompt: string | null;
           character_ids: string[];
           cover_url: string | null;
           created_at: string;
@@ -128,6 +130,8 @@ export type Database = {
         Insert: {
           age_range?: string;
           art_style?: string;
+          art_direction_id?: string | null;
+          art_direction_prompt?: string | null;
           character_ids?: string[];
           cover_url?: string | null;
           created_at?: string;
@@ -149,6 +153,8 @@ export type Database = {
         Update: {
           age_range?: string;
           art_style?: string;
+          art_direction_id?: string | null;
+          art_direction_prompt?: string | null;
           character_ids?: string[];
           cover_url?: string | null;
           created_at?: string;

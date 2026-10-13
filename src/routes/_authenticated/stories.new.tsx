@@ -13,6 +13,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { STYLE_ART } from "@/lib/style-art";
 import { Check, FileText, RefreshCw } from "lucide-react";
+import { ArtDirectionPicker } from "@/components/ArtDirectionPicker";
+import { ART_DIRECTION_BOARDS } from "@/lib/art-direction";
 
 export const Route = createFileRoute("/_authenticated/stories/new")({
   head: () => ({
@@ -68,6 +70,7 @@ function NewStory() {
   const [theme, setTheme] = useState<string | null>(null);
   const [tone, setTone] = useState<string | null>("Cozy");
   const [style, setStyle] = useState<string>(ART_STYLES[0].id);
+  const [directionId, setDirectionId] = useState<string | null>(ART_DIRECTION_BOARDS[0].id);
   const [voice, setVoice] = useState<string>(VOICES[0].id);
   const [voiceProfileId, setVoiceProfileId] = useState<string | null>(null);
   const [pages, setPages] = useState(8);
@@ -108,7 +111,9 @@ function NewStory() {
             ageGuide: ageInfo.words,
             theme,
             tone,
-            artStyle: style,
+            artStyle: directionId
+              ? `${ART_DIRECTION_BOARDS.find((board) => board.id === directionId)?.name}: ${ART_DIRECTION_BOARDS.find((board) => board.id === directionId)?.prompt}`
+              : style,
             pages,
             characters: picked.map((c) => ({
               name: c.name,
@@ -140,6 +145,10 @@ function NewStory() {
           theme,
           tone,
           art_style: style,
+          art_direction_id: directionId,
+          art_direction_prompt: directionId
+            ? ART_DIRECTION_BOARDS.find((board) => board.id === directionId)?.prompt
+            : null,
           voice,
           voice_profile_id: voiceProfileId,
           character_ids: cast,
@@ -237,34 +246,54 @@ function NewStory() {
             </div>
           </div>
         </Section>
-        <Section title="4. Art style">
-          <div className="grid gap-2 sm:grid-cols-3">
-            {ART_STYLES.map((s) => (
-              <Button
-                variant="outline"
-                key={s.id}
-                aria-pressed={style === s.id}
-                onClick={() => setStyle(s.id)}
-                className={cn(
-                  "h-auto overflow-hidden whitespace-normal rounded-lg border p-0 text-left flex-col items-stretch gap-0",
-                  style === s.id
-                    ? "border-primary ring-2 ring-primary/20 bg-primary/10"
-                    : "hover:bg-secondary",
-                )}
-              >
-                {STYLE_ART[s.id] && (
-                  <img
-                    src={STYLE_ART[s.id]}
-                    alt={`${s.id} illustration of a lantern-lit forest adventure`}
-                    className="aspect-[4/3] w-full object-contain bg-secondary"
-                  />
-                )}
-                <span className="flex flex-col gap-1 p-4">
-                  <span className="font-semibold">{s.id}</span>
-                  <span className="text-xs text-muted-foreground">{s.hint}</span>
-                </span>
-              </Button>
-            ))}
+        <Section title="4. CyliaTales art direction">
+          <p className="mb-4 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Choose a visual world with a real production board. This direction is carried into every
+            illustration prompt and stays attached to the story.
+          </p>
+          <ArtDirectionPicker
+            selected={directionId}
+            onSelect={(id) => {
+              setDirectionId(id);
+              const board = ART_DIRECTION_BOARDS.find((item) => item.id === id);
+              if (board) setStyle(board.name);
+            }}
+          />
+          <div className="mt-6 border-t pt-6">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Or use a foundational medium
+            </p>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {ART_STYLES.map((s) => (
+                <Button
+                  variant="outline"
+                  key={s.id}
+                  aria-pressed={style === s.id}
+                  onClick={() => {
+                    setDirectionId(null);
+                    setStyle(s.id);
+                  }}
+                  className={cn(
+                    "h-auto overflow-hidden whitespace-normal rounded-lg border p-0 text-left flex-col items-stretch gap-0",
+                    style === s.id
+                      ? "border-primary ring-2 ring-primary/20 bg-primary/10"
+                      : "hover:bg-secondary",
+                  )}
+                >
+                  {STYLE_ART[s.id] && (
+                    <img
+                      src={STYLE_ART[s.id]}
+                      alt={`${s.id} illustration of a lantern-lit forest adventure`}
+                      className="aspect-[4/3] w-full object-contain bg-secondary"
+                    />
+                  )}
+                  <span className="flex flex-col gap-1 p-4">
+                    <span className="font-semibold">{s.id}</span>
+                    <span className="text-xs text-muted-foreground">{s.hint}</span>
+                  </span>
+                </Button>
+              ))}
+            </div>
           </div>
         </Section>
         <Section title="5. Cast, narrator & length">

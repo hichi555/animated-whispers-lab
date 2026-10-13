@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "brand": "CyliaTales",
+  "purpose": "Original art-direction boards used as production controls in story creation",
+  "generated_with": "FLUX 3 Image",
+  "boards": [
+    {
+      "id": "enchanted-lanterns",
+      "file": "enchanted-lanterns.png",
+      "request_id": "d0a4065b-bf3c-455a-b1cc-7501bc20d27c",
+      "medium": "Gouache + watercolor",
+      "prompt": "Tactile gouache and watercolor paint, layered paper grain, deep pine and warm lantern amber, expressive faces, cinematic golden rim light, carefully designed woodland environments, premium picture-book illustration."
+    },
+    {
+      "id": "cloud-cartographers",
+      "file": "cloud-cartographers.png",
+      "request_id": "f8a911eb-914e-42dd-bed3-43d66efdd6f1",
+      "medium": "Ink + colored pencil",
+      "prompt": "Refined ink and colored pencil, architectural linework, soft cream paper, cobalt and apricot with moss green, intelligent visual storytelling, precise exploratory environments, premium illustrated book art."
+    },
+    {
+      "id": "tideglass",
+      "file": "tideglass.png",
+      "request_id": "c01deaba-6766-4414-b9c2-987929edb60a",
+      "medium": "3D clay + miniature sets",
+      "prompt": "Cinematic 3D clay and handcrafted miniature sets, tactile materials, translucent turquoise and midnight blue with pearl highlights, volumetric caustic light, premium family animation concept art."
+    },
+    {
+      "id": "night-garden",
+      "file": "night-garden.png",
+      "request_id": "2761db43-a8ad-4c73-9efc-e836f9840569",
+      "medium": "Ink wash + neon pigment",
+      "prompt": "Painterly ink wash with selective neon pigment, indigo and electric lilac with leaf green, quiet emotional atmosphere, precise silhouettes, bioluminescent details, premium graphic storybook art."
+    }
+  ]
+}
