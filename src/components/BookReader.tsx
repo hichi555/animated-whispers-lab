@@ -224,7 +224,9 @@ export function BookReader({
           ))}
         </nav>
       )}
-      <div className={`flip-stage ${current === 0 ? "reader-front-closed" : current >= total - 1 ? "reader-back-closed" : ""}`}>
+      <div
+        className={`flip-stage ${current === 0 ? "reader-front-closed" : current >= total - 1 ? "reader-back-closed" : ""}`}
+      >
         <Flip
           ref={book}
           key={`${storyId}:${dims.w}x${dims.h}:${startPage}`}
@@ -258,7 +260,9 @@ export function BookReader({
               // localStorage may be unavailable in private browsing mode
             }
           }}
-          onChangeState={(e: { data: string }) => { if (e.data === "flipping") rustle(); }}
+          onChangeState={(e: { data: string }) => {
+            if (e.data === "flipping") rustle();
+          }}
           className="flip-book"
         >
           <Leaf hard className="flip-cover">
@@ -324,7 +328,7 @@ export function BookReader({
               ? "Cover"
               : current >= total - 1
                 ? "Back cover"
-                 : `Page ${Math.floor((current - 1) / 2) + 1} of ${pages.length}`}
+                : `Page ${Math.floor((current - 1) / 2) + 1} of ${pages.length}`}
           </span>
           <Button
             size="icon"

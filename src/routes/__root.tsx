@@ -13,7 +13,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
+import { reportRuntimeError } from "../lib/runtime-error-reporting";
 
 function NotFoundComponent() {
   return (
@@ -21,7 +21,9 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">This page wandered off</h2>
-        <p className="mt-2 text-sm text-muted-foreground">We couldn't find the page you were looking for.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          We couldn't find the page you were looking for.
+        </p>
         <div className="mt-6">
           <Link
             to="/"
@@ -39,14 +41,18 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportRuntimeError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">This page didn't load</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Something went wrong. Try refreshing or head back home.</p>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          This page didn't load
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Something went wrong. Try refreshing or head back home.
+        </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -75,7 +81,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "CyliaTales — Children's Story Studio" },
-      { name: "description", content: "Write, illustrate and narrate original children's books with AI." },
+      {
+        name: "description",
+        content: "Write, illustrate and narrate original children's books with AI.",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -113,8 +122,13 @@ function RootComponent() {
   const router = useRouter();
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") { queryClient.clear(); void router.invalidate(); }
-      else if (event === "SIGNED_IN" || event === "USER_UPDATED") { void router.invalidate(); void queryClient.invalidateQueries(); }
+      if (event === "SIGNED_OUT") {
+        queryClient.clear();
+        void router.invalidate();
+      } else if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+        void router.invalidate();
+        void queryClient.invalidateQueries();
+      }
     });
     return () => data.subscription.unsubscribe();
   }, [queryClient, router]);

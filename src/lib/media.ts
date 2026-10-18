@@ -1,9 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export async function uploadBase64(userId: string, folder: string, b64: string, mime = "image/png") {
+export async function uploadBase64(
+  userId: string,
+  folder: string,
+  b64: string,
+  mime = "image/png",
+) {
   const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-  const ext = mime.includes("png") ? "png" : mime.includes("wav") ? "wav" : mime.includes("mpeg") ? "mp3" : "bin";
+  const ext = mime.includes("png")
+    ? "png"
+    : mime.includes("wav")
+      ? "wav"
+      : mime.includes("mpeg")
+        ? "mp3"
+        : "bin";
   const path = `${userId}/${folder}/${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage.from("media").upload(path, bytes, { contentType: mime });
   if (error) throw error;
@@ -11,9 +22,16 @@ export async function uploadBase64(userId: string, folder: string, b64: string, 
 }
 
 export async function uploadFile(userId: string, folder: string, file: File) {
-  const safeExtension = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+  const safeExtension =
+    file.name
+      .split(".")
+      .pop()
+      ?.toLowerCase()
+      .replace(/[^a-z0-9]/g, "") || "bin";
   const path = `${userId}/${folder}/${crypto.randomUUID()}.${safeExtension}`;
-  const { error } = await supabase.storage.from("media").upload(path, file, { contentType: file.type, upsert: false });
+  const { error } = await supabase.storage
+    .from("media")
+    .upload(path, file, { contentType: file.type, upsert: false });
   if (error) throw error;
   return path;
 }

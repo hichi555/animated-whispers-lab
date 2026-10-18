@@ -24,25 +24,89 @@ export const AGE_RANGES = [
 
 export const THEMES = [
   { group: "Feelings", items: ["Courage", "Kindness", "Handling big emotions", "Making friends"] },
-  { group: "Adventure", items: ["Space voyage", "Enchanted forest", "Under the sea", "Time travel"] },
-  { group: "Learning", items: ["Counting & numbers", "Nature & seasons", "Science wonders", "Letters & words"] },
-  { group: "Routines", items: ["Bedtime", "First day of school", "New sibling", "Trying new foods"] },
+  {
+    group: "Adventure",
+    items: ["Space voyage", "Enchanted forest", "Under the sea", "Time travel"],
+  },
+  {
+    group: "Learning",
+    items: ["Counting & numbers", "Nature & seasons", "Science wonders", "Letters & words"],
+  },
+  {
+    group: "Routines",
+    items: ["Bedtime", "First day of school", "New sibling", "Trying new foods"],
+  },
 ] as const;
 
 export const TONES = ["Cozy", "Funny", "Magical", "Calm", "Exciting", "Heartfelt"] as const;
 
-export const CHARACTER_KINDS = ["Child", "Animal", "Creature", "Robot", "Fairy", "Grown-up"] as const;
+export const CHARACTER_KINDS = [
+  "Child",
+  "Animal",
+  "Creature",
+  "Robot",
+  "Fairy",
+  "Grown-up",
+] as const;
 
 /** Original narrator voices. `engine` is the underlying speech voice. */
 export const VOICES = [
-  { id: "Wren", engine: "Kore", mood: "Warm & gentle", best: "Bedtime, cozy stories", category: "Storytellers" },
-  { id: "Otis", engine: "Charon", mood: "Deep & comforting", best: "Classic tales, calm reads", category: "Storytellers" },
-  { id: "Juniper", engine: "Aoede", mood: "Bright & airy", best: "Fairy tales, magic", category: "Storytellers" },
-  { id: "Pip", engine: "Puck", mood: "Playful & bouncy", best: "Funny stories, adventures", category: "Playful" },
-  { id: "Maple", engine: "Leda", mood: "Youthful & curious", best: "Learning, discovery", category: "Playful" },
-  { id: "Fennel", engine: "Fenrir", mood: "Energetic & bold", best: "Action, space, pirates", category: "Playful" },
-  { id: "Sage", engine: "Achernar", mood: "Soft & soothing", best: "Wind-down, mindfulness", category: "Calm" },
-  { id: "Rowan", engine: "Orus", mood: "Steady & clear", best: "Classroom reading", category: "Calm" },
+  {
+    id: "Wren",
+    engine: "Kore",
+    mood: "Warm & gentle",
+    best: "Bedtime, cozy stories",
+    category: "Storytellers",
+  },
+  {
+    id: "Otis",
+    engine: "Charon",
+    mood: "Deep & comforting",
+    best: "Classic tales, calm reads",
+    category: "Storytellers",
+  },
+  {
+    id: "Juniper",
+    engine: "Aoede",
+    mood: "Bright & airy",
+    best: "Fairy tales, magic",
+    category: "Storytellers",
+  },
+  {
+    id: "Pip",
+    engine: "Puck",
+    mood: "Playful & bouncy",
+    best: "Funny stories, adventures",
+    category: "Playful",
+  },
+  {
+    id: "Maple",
+    engine: "Leda",
+    mood: "Youthful & curious",
+    best: "Learning, discovery",
+    category: "Playful",
+  },
+  {
+    id: "Fennel",
+    engine: "Fenrir",
+    mood: "Energetic & bold",
+    best: "Action, space, pirates",
+    category: "Playful",
+  },
+  {
+    id: "Sage",
+    engine: "Achernar",
+    mood: "Soft & soothing",
+    best: "Wind-down, mindfulness",
+    category: "Calm",
+  },
+  {
+    id: "Rowan",
+    engine: "Orus",
+    mood: "Steady & clear",
+    best: "Classroom reading",
+    category: "Calm",
+  },
 ] as const;
 
 export function voiceEngine(id: string) {

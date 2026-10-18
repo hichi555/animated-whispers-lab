@@ -18,8 +18,24 @@ export function SignOutButton({ compact = false }: { compact?: boolean }) {
       if (error) throw error;
       cache.clear();
       await navigate({ to: "/auth", replace: true });
-    } catch (error) { toast.error((error as Error).message); }
-    finally { setBusy(false); }
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
   }
-  return <Button variant="ghost" size={compact ? "icon" : "default"} title="Sign out" aria-label="Sign out" disabled={busy} onClick={signOut} className={compact ? "" : "mt-2 w-full justify-start gap-3"}><LogOut className="h-4 w-4" />{!compact && (busy ? "Signing out…" : "Sign out")}</Button>;
+  return (
+    <Button
+      variant="ghost"
+      size={compact ? "icon" : "default"}
+      title="Sign out"
+      aria-label="Sign out"
+      disabled={busy}
+      onClick={signOut}
+      className={compact ? "" : "mt-2 w-full justify-start gap-3"}
+    >
+      <LogOut className="h-4 w-4" />
+      {!compact && (busy ? "Signing out…" : "Sign out")}
+    </Button>
+  );
 }

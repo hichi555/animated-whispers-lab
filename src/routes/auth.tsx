@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,10 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — CyliaTales" },
-      { name: "description", content: "Sign in or create your CyliaTales account to start making stories." },
+      {
+        name: "description",
+        content: "Sign in or create your CyliaTales account to start making stories.",
+      },
       { property: "og:title", content: "Sign in — CyliaTales" },
       { property: "og:description", content: "Access your story studio." },
       { property: "og:type", content: "website" },
@@ -33,6 +35,7 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const authOrigin = "https://8080-iglrw5o9k7hus7i62a4nu-99c4f93e.us3.manus.computer";
 
   useEffect(() => {
     if (session) nav({ to: "/studio" });
@@ -47,10 +50,17 @@ function AuthPage() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin + "/auth", data: { full_name: name } },
+          options: {
+            emailRedirectTo: `${authOrigin}/auth/callback?returnTo=%2Fstudio`,
+            data: { full_name: name },
+          },
         });
         if (error) throw error;
-        if (!data.session) { setNotice("Check your email for the confirmation link, then return to sign in."); setMode("in"); setPassword(""); }
+        if (!data.session) {
+          setNotice("Check your email for the confirmation link, then return to sign in.");
+          setMode("in");
+          setPassword("");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -65,32 +75,86 @@ function AuthPage() {
   async function google() {
     setBusy(true);
     try {
-      const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth" });
-      if (r.error) throw new Error(r.error.message ?? "Google sign-in failed");
-    } catch (error) { toast.error((error as Error).message); }
-    finally { setBusy(false); }
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${authOrigin}/auth/callback?returnTo=%2Fstudio`,
+          queryParams: { access_type: "offline", prompt: "select_account" },
+        },
+      });
+      if (error) throw error;
+    } catch (error) {
+      toast.error((error as Error).message);
+      setBusy(false);
+    }
   }
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="flex flex-col justify-center px-6 py-12 sm:px-16">
         <Logo />
-        <h1 className="mt-10 text-4xl font-semibold">{mode === "in" ? "Welcome back" : "Create your studio"}</h1>
+        <h1 className="mt-10 text-4xl font-semibold">
+          {mode === "in" ? "Welcome back" : "Create your studio"}
+        </h1>
         <p className="mt-2 text-muted-foreground">
-          {mode === "in" ? "Pick up where your story left off." : "Free to start. Your books, characters and voices in one place."}
+          {mode === "in"
+            ? "Pick up where your story left off."
+            : "Free to start. Your books, characters and voices in one place."}
         </p>
-        <Button variant="outline" disabled={busy} className="mt-8 h-11" onClick={google}>Continue with Google</Button>
-        {notice && <p role="status" className="mt-4 max-w-md border-l-2 border-primary pl-3 text-sm text-primary">{notice}</p>}
-        <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
+        <Button variant="outline" disabled={busy} className="mt-8 h-11" onClick={google}>
+          Continue with Google
+        </Button>
+        {notice && (
+          <p
+            role="status"
+            className="mt-4 max-w-md border-l-2 border-primary pl-3 text-sm text-primary"
+          >
+            {notice}
+          </p>
+        )}
+        <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="h-px flex-1 bg-border" />
+          or
+          <span className="h-px flex-1 bg-border" />
+        </div>
         <form onSubmit={submit} className="space-y-4 max-w-md">
           {mode === "up" && (
-            <div className="space-y-1.5"><Label htmlFor="name">Your name</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} /></div>
+            <div className="space-y-1.5">
+              <Label htmlFor="name">Your name</Label>
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
           )}
-          <div className="space-y-1.5"><Label htmlFor="email">Email</Label><Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-          <div className="space-y-1.5"><Label htmlFor="pw">Password</Label><Input id="pw" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-          <Button type="submit" className="h-11 w-full" disabled={busy}>{busy ? "Please wait…" : mode === "in" ? "Sign in" : "Create account"}</Button>
+          <div className="space-y-1.5">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="pw">Password</Label>
+            <Input
+              id="pw"
+              type="password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <Button type="submit" className="h-11 w-full" disabled={busy}>
+            {busy ? "Please wait…" : mode === "in" ? "Sign in" : "Create account"}
+          </Button>
         </form>
-        <Button variant="link" disabled={busy} className="mt-6 justify-start px-0 text-sm text-muted-foreground" onClick={() => setMode(mode === "in" ? "up" : "in")}>
+        <Button
+          variant="link"
+          disabled={busy}
+          className="mt-6 justify-start px-0 text-sm text-muted-foreground"
+          onClick={() => setMode(mode === "in" ? "up" : "in")}
+        >
           {mode === "in" ? "New here? Create an account" : "Already have an account? Sign in"}
         </Button>
       </div>

@@ -18,7 +18,7 @@ export const STYLE_ART: Record<string, string> = {
   "Clay character": character.url,
   "Neon fantasy": neon.url,
   "Oil painting": oil.url,
-  "Engraving": engraving.url,
+  Engraving: engraving.url,
   "Comic book": comic.url,
   "Colored pencil": pencil.url,
   "Enchanted realism": enchanted.url,
