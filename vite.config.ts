@@ -6,7 +6,10 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [
-    tanstackStart(),
+    tanstackStart({
+      customViteReact: true,
+      tsr: { generateRouteTree: true },
+    } as never),
     viteReact(),
     tailwindcss(),
     tsconfigPaths(),
