@@ -16,6 +16,7 @@
 
 - The authenticated shell presents clear Create, Library, Produce, and Account groupings.
 - The studio makes continuity, production status, and output formats visible without generic placeholder content.
+- The studio exposes a real Delivery Suite linking approved story assets to read-aloud books, moving scenes, comic pages, posters/covers, learning extensions, and print/archive delivery.
 - Existing books, characters, voices, motion, activities, art direction, remix, poster, comic, reader, and export features remain reachable.
 
 ## Validation and delivery
