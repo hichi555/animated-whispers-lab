@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import hero from "@/assets/hero.jpg";
 
+const PREVIEW_ORIGIN = "https://8080-iglrw5o9k7hus7i62a4nu-99c4f93e.us3.manus.computer";
+
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
@@ -36,11 +38,16 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const autoGoogleStarted = useRef(false);
-  const authOrigin = window.location.origin;
-  const publicOrigin = import.meta.env["VITE_APP_URL"] as string | undefined;
+  const browserOrigin = window.location.origin;
+  const configuredOrigin = import.meta.env["VITE_APP_URL"] as string | undefined;
+  // OAuth must never use a user's localhost: Google would return to their own
+  // machine instead of this running CyliaTales instance. The configured origin
+  // wins, with the active preview as a safe fallback for local clones.
+  const callbackOrigin = (configuredOrigin || PREVIEW_ORIGIN).replace(/\/$/, "");
   const localOrigin =
     window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-  const handoffToPublic = localOrigin && publicOrigin && publicOrigin !== authOrigin;
+  const handoffToPublic = localOrigin && callbackOrigin !== browserOrigin;
+  const callbackUrl = `${callbackOrigin}/auth/callback?returnTo=%2Fstudio`;
 
   useEffect(() => {
     if (session) nav({ to: "/studio" });
@@ -56,7 +63,7 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: `${authOrigin}/auth/callback?returnTo=%2Fstudio`,
+            emailRedirectTo: callbackUrl,
             data: { full_name: name },
           },
         });
@@ -81,13 +88,13 @@ function AuthPage() {
     setBusy(true);
     try {
       if (handoffToPublic) {
-        window.location.assign(`${publicOrigin}/auth?oauth=google&returnTo=%2Fstudio`);
+        window.location.assign(`${callbackOrigin}/auth?oauth=google&returnTo=%2Fstudio`);
         return;
       }
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${authOrigin}/auth/callback?returnTo=%2Fstudio`,
+          redirectTo: callbackUrl,
           queryParams: { access_type: "offline", prompt: "select_account" },
         },
       });
@@ -134,7 +141,7 @@ function AuthPage() {
           or
           <span className="h-px flex-1 bg-border" />
         </div>
-        <form onSubmit={submit} className="space-y-4 max-w-md">
+        <form onSubmit={submit} className="max-w-md space-y-4">
           {mode === "up" && (
             <div className="space-y-1.5">
               <Label htmlFor="name">Your name</Label>
