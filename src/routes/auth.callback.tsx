@@ -4,6 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth/callback")({
   ssr: false,
+  validateSearch: (search: Record<string, unknown>) => ({
+    returnTo: typeof search["returnTo"] === "string" ? search["returnTo"] : "/studio",
+  }),
   head: () => ({
     meta: [{ title: "Finishing sign in — CyliaTales" }, { name: "robots", content: "noindex" }],
   }),
