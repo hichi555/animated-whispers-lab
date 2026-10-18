@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -35,7 +35,12 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const autoGoogleStarted = useRef(false);
   const authOrigin = window.location.origin;
+  const publicOrigin = import.meta.env["VITE_APP_URL"] as string | undefined;
+  const localOrigin =
+    window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  const handoffToPublic = localOrigin && publicOrigin && publicOrigin !== authOrigin;
 
   useEffect(() => {
     if (session) nav({ to: "/studio" });
@@ -75,6 +80,10 @@ function AuthPage() {
   async function google() {
     setBusy(true);
     try {
+      if (handoffToPublic) {
+        window.location.assign(`${publicOrigin}/auth?oauth=google&returnTo=%2Fstudio`);
+        return;
+      }
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -88,6 +97,14 @@ function AuthPage() {
       setBusy(false);
     }
   }
+
+  useEffect(() => {
+    const oauth = new URLSearchParams(window.location.search).get("oauth");
+    if (oauth === "google" && !session && !autoGoogleStarted.current) {
+      autoGoogleStarted.current = true;
+      void google();
+    }
+  }, [session]);
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
