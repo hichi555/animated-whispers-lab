@@ -16,6 +16,7 @@ import {
 import hero from "@/assets/hero.jpg";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
+import { ART_DIRECTION_BOARDS } from "@/lib/art-direction";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -82,6 +83,24 @@ const TRUST_POINTS = [
   { icon: Sparkles, label: "Review before generation" },
   { icon: Heart, label: "Built for real family moments" },
   { icon: GraduationCap, label: "Useful in classrooms, too" },
+];
+
+const STORY_OUTPUTS = [
+  {
+    label: "Read-aloud book",
+    detail: "Page turns, narration and a keepsake rhythm.",
+    icon: BookOpen,
+  },
+  {
+    label: "Moving scene",
+    detail: "A planned shot with sound, motion and continuity.",
+    icon: Clapperboard,
+  },
+  {
+    label: "Learning extension",
+    detail: "Gentle activities that follow the story’s real themes.",
+    icon: GraduationCap,
+  },
 ];
 
 function Landing() {
@@ -274,6 +293,56 @@ function Landing() {
                 </li>
               ))}
             </ol>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                The world layer
+              </p>
+              <h2 className="mt-4 text-4xl font-semibold tracking-[-0.02em] md:text-5xl">
+                One direction. Every finished form.
+              </h2>
+              <p className="mt-5 leading-7 text-muted-foreground">
+                CyliaTales keeps the visual language, cast and emotional center intact while you
+                move from a quiet page to a narrated read-aloud, a moving scene or a thoughtful
+                classroom extension.
+              </p>
+              <div className="mt-8 space-y-3">
+                {STORY_OUTPUTS.map(({ label, detail, icon: Icon }) => (
+                  <div key={label} className="flex gap-3 rounded-xl border bg-card p-4">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-secondary text-primary">
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="font-semibold">{label}</p>
+                      <p className="mt-1 text-sm leading-5 text-muted-foreground">{detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {ART_DIRECTION_BOARDS.slice(0, 3).map((board, index) => (
+                <article
+                  key={board.id}
+                  className={`story-style-tile ${index === 0 ? "sm:col-span-2" : ""}`}
+                >
+                  <img src={board.image} alt={`${board.name} art direction`} />
+                  <div className="story-style-caption">
+                    <div>
+                      <p className="font-display text-xl">{board.name}</p>
+                      <p className="text-xs uppercase tracking-[0.14em] opacity-80">
+                        {board.medium}
+                      </p>
+                    </div>
+                    <span>{board.palette}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
