@@ -8,6 +8,7 @@
     { "path": "/studio", "title": "Studio" },
     { "path": "/stories", "title": "My books" },
     { "path": "/stories/new", "title": "New story" },
+    { "path": "/world", "title": "Story World" },
     { "path": "/stories/:id", "title": "Story" },
     { "path": "/characters", "title": "Characters" },
     { "path": "/voices", "title": "Voices" },

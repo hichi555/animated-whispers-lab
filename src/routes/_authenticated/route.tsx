@@ -9,6 +9,7 @@ import {
   Clapperboard,
   GraduationCap,
   Settings2,
+  Globe2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ const NAV = [
     items: [
       { to: "/studio", label: "Overview", icon: LayoutGrid },
       { to: "/stories/new", label: "New story", icon: PenTool },
+      { to: "/world", label: "Story World", icon: Globe2 },
     ],
   },
   {

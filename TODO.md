@@ -1,27 +1,14 @@
-# CyliaTales upgrade outcomes
 
-## Independent foundation
 
-- The application contains no provider-generated auth adapter, provider-specific environment variable, localhost redirect, or obsolete asset URL in active source.
-- Supabase client and Google OAuth remain direct, explicit, and environment-driven.
+## Story World continuity workspace
 
-## Settings & Preferences center
+- Authenticated users can open `/world` from desktop and mobile navigation.
+- The workspace shows the current story count, character count, active art direction, continuity risks, and the next recommended production action.
+- Users can add and remove named places and props with a purpose and visual anchor; entries persist in the browser without being presented as remote database records.
+- The workspace links directly to the existing character atlas, story shelf, settings and motion production desk.
 
-- Authenticated users can open `/settings` from desktop and mobile navigation.
-- Users can select a reading age, story language, optional bilingual reading, narration autoplay, dyslexia-friendly reading, high contrast, reduced motion, private-by-default publishing, and creation defaults.
-- Settings show explicit save state and persist across reloads without pretending to be server-saved when they are browser-local.
-- Reset controls are scoped and reversible.
+## Preview and brand reliability
 
-## Production studio quality
-
-- The authenticated shell presents clear Create, Library, Produce, and Account groupings.
-- The studio makes continuity, production status, and output formats visible without generic placeholder content.
-- The studio exposes a real Delivery Suite linking approved story assets to read-aloud books, moving scenes, comic pages, posters/covers, learning extensions, and print/archive delivery.
-- Existing books, characters, voices, motion, activities, art direction, remix, poster, comic, reader, and export features remain reachable.
-
-## Validation and delivery
-
-- Production build passes.
-- Local authenticated routes return HTTP 200.
-- Public original art assets return HTTP 200.
-- GitHub receives the independent source without `.env`, keys, dependencies, or generated output.
+- When OAuth starts from localhost, Google receives the public preview callback rather than a user's own localhost origin.
+- The live document head references the original CyliaTales lantern mark and no longer references the provider gradient favicon.
+- The connected GitHub repository contains the same OAuth and branding changes as the active preview source.

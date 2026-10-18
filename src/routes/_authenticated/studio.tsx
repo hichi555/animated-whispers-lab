@@ -159,6 +159,19 @@ function Studio() {
         </div>
         <div className="mt-7 grid gap-3 md:grid-cols-3">
           <Link
+            to="/world"
+            className="group rounded-2xl border p-5 transition hover:-translate-y-0.5 hover:border-primary/40"
+          >
+            <Globe2 className="h-5 w-5 text-primary" />
+            <h3 className="mt-4 font-semibold">Story World</h3>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              {cast + stories.length} continuity anchor{cast + stories.length === 1 ? "" : "s"} across your next production.
+            </p>
+            <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary">
+              Open world desk <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+            </span>
+          </Link>
+          <Link
             to="/characters"
             className="group rounded-2xl border p-5 transition hover:-translate-y-0.5 hover:border-primary/40"
           >
