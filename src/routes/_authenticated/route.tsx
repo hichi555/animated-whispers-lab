@@ -7,11 +7,10 @@ import {
   UserRound,
   Mic,
   Clapperboard,
-  LogOut,
   GraduationCap,
+  Settings2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { SignOutButton } from "@/components/SignOutButton";
@@ -43,6 +42,10 @@ const NAV = [
       { to: "/labs", label: "Production", icon: Clapperboard },
       { to: "/activities", label: "Classroom activities", icon: GraduationCap },
     ],
+  },
+  {
+    group: "Account",
+    items: [{ to: "/settings", label: "Settings", icon: Settings2 }],
   },
 ] as const;
 

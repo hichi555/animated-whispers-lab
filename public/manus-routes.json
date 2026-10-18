@@ -1,0 +1,20 @@
+{
+  "routes": [
+    { "path": "/", "title": "Home" },
+    { "path": "/auth", "title": "Sign in" },
+    { "path": "/auth/callback", "title": "Auth callback" },
+    { "path": "/explore", "title": "Explore" },
+    { "path": "/explore/:id", "title": "Explore story" },
+    { "path": "/studio", "title": "Studio" },
+    { "path": "/stories", "title": "My books" },
+    { "path": "/stories/new", "title": "New story" },
+    { "path": "/stories/:id", "title": "Story" },
+    { "path": "/characters", "title": "Characters" },
+    { "path": "/voices", "title": "Voices" },
+    { "path": "/labs", "title": "Production" },
+    { "path": "/activities", "title": "Classroom activities" },
+    { "path": "/puppy", "title": "Puppy showcase" },
+    { "path": "/remix/:id", "title": "Remix story" },
+    { "path": "/settings", "title": "Settings" }
+  ]
+}

@@ -18,6 +18,8 @@ export async function gatewayError(res: Response) {
   try {
     const json = JSON.parse(body);
     msg = json?.error?.message ?? json?.message ?? body;
-  } catch {}
+  } catch {
+    // Keep the raw response when the provider returns non-JSON text.
+  }
   return new Error(`AI request failed (${res.status}): ${String(msg).slice(0, 300)}`);
 }
