@@ -53,7 +53,6 @@ function createSupabaseClient() {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      flowType: "implicit",
     },
   });
 }

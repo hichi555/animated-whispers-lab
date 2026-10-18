@@ -35,7 +35,7 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
-  const authOrigin = "https://8080-iglrw5o9k7hus7i62a4nu-99c4f93e.us3.manus.computer";
+  const authOrigin = window.location.origin;
 
   useEffect(() => {
     if (session) nav({ to: "/studio" });
