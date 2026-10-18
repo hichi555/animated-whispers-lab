@@ -3,14 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   BookOpen,
+  BookMarked,
   CheckCircle2,
   Circle,
   Clapperboard,
+  FileImage,
+  Film,
+  GraduationCap,
   Globe2,
   Layers3,
   Mic,
   PenTool,
+  Printer,
   PlaySquare,
+  PanelsTopLeft,
   UserRound,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -193,6 +199,84 @@ function Studio() {
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
             </span>
           </Link>
+        </div>
+      </section>
+      <section className="mb-10" aria-labelledby="delivery-suite-title">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+              Delivery suite
+            </p>
+            <h2 id="delivery-suite-title" className="mt-2 text-2xl font-semibold">
+              One approved world, six finished ways to share it.
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              These are real production surfaces backed by your saved story assets—not teaser cards.
+              Open the story editor to review the source before choosing a format.
+            </p>
+          </div>
+          <Button variant="outline" asChild>
+            <Link to="/labs">
+              Open production desk <ArrowRight />
+            </Link>
+          </Button>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            {
+              to: "/stories",
+              icon: BookMarked,
+              title: "Read-aloud book",
+              body: "Flip-book reading, saved narration, contents and large type.",
+            },
+            {
+              to: "/labs",
+              icon: Film,
+              title: "Moving scenes",
+              body: "Direct camera movement, duration and motion per approved page.",
+            },
+            {
+              to: "/stories",
+              icon: PanelsTopLeft,
+              title: "Comic page",
+              body: "Build three connected panels from the same cast and art direction.",
+            },
+            {
+              to: "/stories",
+              icon: FileImage,
+              title: "Poster & cover",
+              body: "Create a finished visual identity for the story world.",
+            },
+            {
+              to: "/activities",
+              icon: GraduationCap,
+              title: "Learning extension",
+              body: "Turn the actual story into warm, age-aware activities.",
+            },
+            {
+              to: "/stories",
+              icon: Printer,
+              title: "Print & archive",
+              body: "Deliver a print PDF or a complete asset bundle for safekeeping.",
+            },
+          ].map(({ to, icon: Icon, title, body }) => (
+            <Link
+              key={title}
+              to={to}
+              className="group flex gap-4 rounded-2xl border bg-card p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-primary/40"
+            >
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-secondary text-primary">
+                <Icon className="h-5 w-5" />
+              </span>
+              <span className="min-w-0">
+                <span className="flex items-center gap-2 font-semibold">
+                  {title}
+                  <ArrowRight className="h-4 w-4 opacity-0 transition group-hover:translate-x-1 group-hover:opacity-100" />
+                </span>
+                <span className="mt-1 block text-sm leading-6 text-muted-foreground">{body}</span>
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
