@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Settings2,
   Globe2,
+  Compass,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const NAV = [
     group: "Library",
     items: [
       { to: "/stories", label: "My books", icon: BookOpen },
+      { to: "/explore", label: "Explore", icon: Compass },
       { to: "/characters", label: "Characters", icon: UserRound },
       { to: "/voices", label: "Voices", icon: Mic },
     ],

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { STYLE_ART } from "@/lib/style-art";
-import { Check, FileText, RefreshCw } from "lucide-react";
+import { BookOpenText, Check, Clock3, FileText, LockKeyhole, RefreshCw, Sparkles } from "lucide-react";
 import { ArtDirectionPicker } from "@/components/ArtDirectionPicker";
 import { ART_DIRECTION_BOARDS } from "@/lib/art-direction";
 
@@ -184,13 +184,29 @@ function NewStory() {
   );
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-6xl">
       <PageHeader
         eyebrow="Create"
         title="New story"
         subtitle="An original book, shaped around your reader."
       />
-      <div className="space-y-5">
+      <div className="mb-8 grid gap-3 border-y py-4 sm:grid-cols-4">
+        {[
+          ["01", "Brief", idea.trim().length >= 3],
+          ["02", "Shape", Boolean(theme || tone)],
+          ["03", "Direct", Boolean(directionId || style)],
+          ["04", "Approve", Boolean(draft)],
+        ].map(([number, label, done]) => (
+          <div key={label as string} className="flex items-center gap-3">
+            <span className={cn("grid h-8 w-8 place-items-center rounded-full text-xs font-bold", done ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>
+              {done ? <Check className="h-4 w-4" /> : number}
+            </span>
+            <span className="text-sm font-semibold">{label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="space-y-5">
         <section className="story-form-section">
           <h2 className="mb-4 text-lg font-semibold">1. Your idea</h2>
           <Textarea
@@ -199,6 +215,14 @@ function NewStory() {
             onChange={(e) => setIdea(e.target.value)}
             placeholder="A shy hedgehog who's afraid of the dark finds a firefly friend…"
           />
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Start from</span>
+            {["A bedtime ritual becomes an adventure", "A child finds a place to belong", "A tiny creature solves a big problem"].map((starter) => (
+              <button key={starter} type="button" onClick={() => setIdea(starter)} className="rounded-full border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary/40 hover:text-foreground">
+                {starter}
+              </button>
+            ))}
+          </div>
         </section>
         <Section title="2. Reader age">
           <div className="grid gap-2 sm:grid-cols-4">
@@ -400,7 +424,29 @@ function NewStory() {
             : draft
               ? "Approve plan & build book"
               : "Preview my story plan"}
-        </Button>
+          </Button>
+        </div>
+        <aside className="self-start lg:sticky lg:top-24">
+          <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
+            <div className="border-b bg-secondary/40 p-5">
+              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                <Sparkles className="h-4 w-4" /> Live brief
+              </p>
+              <h2 className="mt-3 font-display text-2xl">{idea.trim() || "Your story begins with a moment"}</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">The choices here travel with the manuscript, art direction and read-aloud version.</p>
+            </div>
+            <div className="space-y-4 p-5 text-sm">
+              <div className="flex items-start gap-3"><BookOpenText className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span><strong className="block">Reader</strong><span className="text-muted-foreground">Ages {age} · {pages} pages</span></span></div>
+              <div className="flex items-start gap-3"><Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span><strong className="block">Feeling</strong><span className="text-muted-foreground">{theme || "Choose a story theme"} · {tone || "Choose a tone"}</span></span></div>
+              <div className="flex items-start gap-3"><Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span><strong className="block">Voice</strong><span className="text-muted-foreground">{voiceProfileId ? "Private voice" : voice}</span></span></div>
+              <div className="flex items-start gap-3"><LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span><strong className="block">Review-first</strong><span className="text-muted-foreground">No illustration is produced before approval.</span></span></div>
+            </div>
+          </div>
+          <div className="mt-3 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-sm leading-6">
+            <p className="font-semibold">A considered first draft</p>
+            <p className="mt-1 text-muted-foreground">CyliaTales keeps the story editable until the world, pacing and page plan feel right.</p>
+          </div>
+        </aside>
       </div>
     </div>
   );
