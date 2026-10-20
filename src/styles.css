@@ -403,6 +403,37 @@
   font-size: 12px;
   color: var(--muted-foreground);
 }
+.reader-player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: min(420px, 100%);
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--card) 86%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+.reader-player-copy {
+  display: grid;
+  min-width: 120px;
+  flex: 1;
+  gap: 2px;
+}
+.reader-player-copy input[type="range"] {
+  width: 100%;
+  accent-color: var(--primary);
+}
+@media (max-width: 640px) {
+  .reader-player {
+    order: -1;
+    width: 100%;
+    min-width: 0;
+  }
+  .reader-footer {
+    flex-wrap: wrap;
+  }
+}
 .opening .book-art {
   animation: reader-open-left 0.95s cubic-bezier(0.22, 0.7, 0.2, 1) both;
 }

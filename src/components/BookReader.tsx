@@ -1,6 +1,18 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
-import { ArrowLeft, ArrowRight, X, Volume2, VolumeX, ImagePlus, BookOpen } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  ImagePlus,
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  VolumeX,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMediaUrl } from "@/lib/media";
 import type { Tables } from "@/integrations/supabase/types";
@@ -24,19 +36,6 @@ function Art({ path, alt }: { path: string | null; alt: string }) {
   ) : (
     <span className="flip-empty">Illustration not added</span>
   );
-}
-
-function Narration({ path, n }: { path: string | null; n: number }) {
-  const url = useMediaUrl(path);
-  return url ? (
-    <audio
-      controls
-      preload="none"
-      src={url}
-      className="mt-4 w-full"
-      aria-label={`Narration for page ${n}`}
-    />
-  ) : null;
 }
 
 export function BookReader({
@@ -70,6 +69,10 @@ export function BookReader({
   const [contents, setContents] = useState(false);
   const [largeText, setLargeText] = useState(false);
   const [startPage, setStartPage] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const narration = useRef<HTMLAudioElement | null>(null);
   useEffect(() => {
     try {
       const saved = Number(localStorage.getItem(`reader-position:${storyId}`));
@@ -153,6 +156,41 @@ export function BookReader({
       : current === 0
         ? pages[0]
         : undefined;
+  const readingIndex = current > 0 && current < total - 1 ? Math.floor((current - 1) / 2) : -1;
+  const selectedNarration = useMediaUrl(readingIndex >= 0 ? pages[readingIndex]?.audio_url : null);
+
+  useEffect(() => {
+    setProgress(0);
+    setDuration(0);
+    if (narration.current) {
+      narration.current.pause();
+      narration.current.load();
+    }
+  }, [selectedNarration]);
+
+  useEffect(() => {
+    if (!isPlaying || !selectedNarration || !narration.current) return;
+    const play = () => void narration.current?.play().catch(() => setIsPlaying(false));
+    if (narration.current.readyState >= 2) play();
+    else narration.current.addEventListener("loadeddata", play, { once: true });
+    return () => narration.current?.removeEventListener("loadeddata", play);
+  }, [isPlaying, selectedNarration]);
+
+  function togglePlayback() {
+    if (!selectedNarration || !narration.current) return;
+    if (isPlaying) {
+      narration.current.pause();
+      setIsPlaying(false);
+    } else {
+      setIsPlaying(true);
+    }
+  }
+
+  function jumpToPage(index: number) {
+    const next = Math.max(0, Math.min(index, pages.length - 1));
+    book.current?.pageFlip()?.turnToPage(next * 2 + 1);
+  }
+
   return (
     <div
       role="dialog"
@@ -224,6 +262,23 @@ export function BookReader({
           ))}
         </nav>
       )}
+      <audio
+        ref={narration}
+        src={selectedNarration ?? undefined}
+        preload="metadata"
+        onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || 0)}
+        onTimeUpdate={(event) => setProgress(event.currentTarget.currentTime)}
+        onEnded={() => {
+          if (readingIndex < pages.length - 1) jumpToPage(readingIndex + 1);
+          else setIsPlaying(false);
+        }}
+        aria-label={
+          readingIndex >= 0
+            ? `Read-aloud narration for page ${readingIndex + 1}`
+            : "Read-aloud narration"
+        }
+        className="sr-only"
+      />
       <div
         className={`flip-stage ${current === 0 ? "reader-front-closed" : current >= total - 1 ? "reader-back-closed" : ""}`}
       >
@@ -282,7 +337,6 @@ export function BookReader({
               <Art path={p.image_url} alt={`Illustration continuation for page ${p.page_number}`} />
               <div className="flip-prose flip-story-panel">
                 <p>{p.text}</p>
-                <Narration path={p.audio_url} n={p.page_number} />
               </div>
               <span className="flip-folio">{p.page_number}</span>
             </Leaf>,
@@ -312,6 +366,54 @@ export function BookReader({
                   : "Illustrate page"}
             </Button>
           )}
+        </div>
+        <div className="reader-player" aria-label="Read-aloud player">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Previous narrated page"
+            disabled={readingIndex <= 0}
+            onClick={() => jumpToPage(readingIndex - 1)}
+          >
+            <SkipBack />
+          </Button>
+          <Button
+            size="icon"
+            variant="outline"
+            aria-label={isPlaying ? "Pause read-aloud" : "Play read-aloud"}
+            disabled={!selectedNarration}
+            onClick={togglePlayback}
+          >
+            {isPlaying ? <Pause /> : <Play />}
+          </Button>
+          <div className="reader-player-copy">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              {readingIndex >= 0 ? `Page ${readingIndex + 1} read-aloud` : "Read aloud"}
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={duration || 1}
+              step={0.1}
+              value={Math.min(progress, duration || 1)}
+              onChange={(event) => {
+                const next = Number(event.target.value);
+                if (narration.current) narration.current.currentTime = next;
+                setProgress(next);
+              }}
+              disabled={!selectedNarration}
+              aria-label="Narration progress"
+            />
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Next narrated page"
+            disabled={readingIndex < 0 || readingIndex >= pages.length - 1}
+            onClick={() => jumpToPage(readingIndex + 1)}
+          >
+            <SkipForward />
+          </Button>
         </div>
         <div className="flex items-center gap-4">
           <Button
