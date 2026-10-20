@@ -56,4 +56,3 @@ npm run typecheck
 npm run build
 ```
 
-The project is independent of Lovable. No Lovable package, adapter, provider environment variable, or provider-generated branding is required by the application source.
