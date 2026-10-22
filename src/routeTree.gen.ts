@@ -13,12 +13,14 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as StylesRouteImport } from './routes/styles'
 import { Route as AuthenticatedActivitiesRouteImport } from './routes/_authenticated/activities'
 import { Route as AuthenticatedCharactersRouteImport } from './routes/_authenticated/characters'
 import { Route as AuthenticatedLabsRouteImport } from './routes/_authenticated/labs'
-import { Route as AuthenticatedPuppyRouteImport } from './routes/_authenticated/puppy'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
 import { Route as AuthenticatedVoicesRouteImport } from './routes/_authenticated/voices'
+import { Route as AuthenticatedWorldRouteImport } from './routes/_authenticated/world'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ExploreIdRouteImport } from './routes/explore.$id'
 import { Route as AuthenticatedRemixIdRouteImport } from './routes/_authenticated/remix.$id'
@@ -45,6 +47,11 @@ const ExploreRoute = ExploreRouteImport.update({
   path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StylesRoute = StylesRouteImport.update({
+  id: '/styles',
+  path: '/styles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedActivitiesRoute = AuthenticatedActivitiesRouteImport.update({
   id: '/activities',
   path: '/activities',
@@ -60,9 +67,9 @@ const AuthenticatedLabsRoute = AuthenticatedLabsRouteImport.update({
   path: '/labs',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedPuppyRoute = AuthenticatedPuppyRouteImport.update({
-  id: '/puppy',
-  path: '/puppy',
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedStudioRoute = AuthenticatedStudioRouteImport.update({
@@ -73,6 +80,11 @@ const AuthenticatedStudioRoute = AuthenticatedStudioRouteImport.update({
 const AuthenticatedVoicesRoute = AuthenticatedVoicesRouteImport.update({
   id: '/voices',
   path: '/voices',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedWorldRoute = AuthenticatedWorldRouteImport.update({
+  id: '/world',
+  path: '/world',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -111,12 +123,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/explore': typeof ExploreRouteWithChildren
+  '/styles': typeof StylesRoute
   '/activities': typeof AuthenticatedActivitiesRoute
   '/characters': typeof AuthenticatedCharactersRoute
   '/labs': typeof AuthenticatedLabsRoute
-  '/puppy': typeof AuthenticatedPuppyRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/voices': typeof AuthenticatedVoicesRoute
+  '/world': typeof AuthenticatedWorldRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/explore/$id': typeof ExploreIdRoute
   '/remix/$id': typeof AuthenticatedRemixIdRoute
@@ -128,12 +142,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/explore': typeof ExploreRouteWithChildren
+  '/styles': typeof StylesRoute
   '/activities': typeof AuthenticatedActivitiesRoute
   '/characters': typeof AuthenticatedCharactersRoute
   '/labs': typeof AuthenticatedLabsRoute
-  '/puppy': typeof AuthenticatedPuppyRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/voices': typeof AuthenticatedVoicesRoute
+  '/world': typeof AuthenticatedWorldRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/explore/$id': typeof ExploreIdRoute
   '/remix/$id': typeof AuthenticatedRemixIdRoute
@@ -147,12 +163,14 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/explore': typeof ExploreRouteWithChildren
+  '/styles': typeof StylesRoute
   '/_authenticated/activities': typeof AuthenticatedActivitiesRoute
   '/_authenticated/characters': typeof AuthenticatedCharactersRoute
   '/_authenticated/labs': typeof AuthenticatedLabsRoute
-  '/_authenticated/puppy': typeof AuthenticatedPuppyRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRoute
   '/_authenticated/voices': typeof AuthenticatedVoicesRoute
+  '/_authenticated/world': typeof AuthenticatedWorldRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/explore/$id': typeof ExploreIdRoute
   '/_authenticated/remix/$id': typeof AuthenticatedRemixIdRoute
@@ -166,12 +184,14 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/explore'
+    | '/styles'
     | '/activities'
     | '/characters'
     | '/labs'
-    | '/puppy'
+    | '/settings'
     | '/studio'
     | '/voices'
+    | '/world'
     | '/auth/callback'
     | '/explore/$id'
     | '/remix/$id'
@@ -183,12 +203,14 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/explore'
+    | '/styles'
     | '/activities'
     | '/characters'
     | '/labs'
-    | '/puppy'
+    | '/settings'
     | '/studio'
     | '/voices'
+    | '/world'
     | '/auth/callback'
     | '/explore/$id'
     | '/remix/$id'
@@ -201,12 +223,14 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/explore'
+    | '/styles'
     | '/_authenticated/activities'
     | '/_authenticated/characters'
     | '/_authenticated/labs'
-    | '/_authenticated/puppy'
+    | '/_authenticated/settings'
     | '/_authenticated/studio'
     | '/_authenticated/voices'
+    | '/_authenticated/world'
     | '/auth/callback'
     | '/explore/$id'
     | '/_authenticated/remix/$id'
@@ -220,6 +244,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   ExploreRoute: typeof ExploreRouteWithChildren
+  StylesRoute: typeof StylesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/styles': {
+      id: '/styles'
+      path: '/styles'
+      fullPath: '/styles'
+      preLoaderRoute: typeof StylesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/activities': {
       id: '/_authenticated/activities'
       path: '/activities'
@@ -273,11 +305,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLabsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/puppy': {
-      id: '/_authenticated/puppy'
-      path: '/puppy'
-      fullPath: '/puppy'
-      preLoaderRoute: typeof AuthenticatedPuppyRouteImport
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/studio': {
@@ -292,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: '/voices'
       fullPath: '/voices'
       preLoaderRoute: typeof AuthenticatedVoicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/world': {
+      id: '/_authenticated/world'
+      path: '/world'
+      fullPath: '/world'
+      preLoaderRoute: typeof AuthenticatedWorldRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/auth/callback': {
@@ -343,9 +382,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedActivitiesRoute: typeof AuthenticatedActivitiesRoute
   AuthenticatedCharactersRoute: typeof AuthenticatedCharactersRoute
   AuthenticatedLabsRoute: typeof AuthenticatedLabsRoute
-  AuthenticatedPuppyRoute: typeof AuthenticatedPuppyRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStudioRoute: typeof AuthenticatedStudioRoute
   AuthenticatedVoicesRoute: typeof AuthenticatedVoicesRoute
+  AuthenticatedWorldRoute: typeof AuthenticatedWorldRoute
   AuthenticatedRemixIdRoute: typeof AuthenticatedRemixIdRoute
   AuthenticatedStoriesIdRoute: typeof AuthenticatedStoriesIdRoute
   AuthenticatedStoriesNewRoute: typeof AuthenticatedStoriesNewRoute
@@ -356,9 +396,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedActivitiesRoute: AuthenticatedActivitiesRoute,
   AuthenticatedCharactersRoute: AuthenticatedCharactersRoute,
   AuthenticatedLabsRoute: AuthenticatedLabsRoute,
-  AuthenticatedPuppyRoute: AuthenticatedPuppyRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStudioRoute: AuthenticatedStudioRoute,
   AuthenticatedVoicesRoute: AuthenticatedVoicesRoute,
+  AuthenticatedWorldRoute: AuthenticatedWorldRoute,
   AuthenticatedRemixIdRoute: AuthenticatedRemixIdRoute,
   AuthenticatedStoriesIdRoute: AuthenticatedStoriesIdRoute,
   AuthenticatedStoriesNewRoute: AuthenticatedStoriesNewRoute,
@@ -394,6 +435,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   ExploreRoute: ExploreRouteWithChildren,
+  StylesRoute: StylesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { STYLE_ART } from "@/lib/style-art";
+import { STYLE_SAMPLES } from "@/lib/showcase";
 import { BookOpenText, Check, Clock3, FileText, LockKeyhole, RefreshCw, Sparkles } from "lucide-react";
 import { ArtDirectionPicker } from "@/components/ArtDirectionPicker";
 import { ART_DIRECTION_BOARDS } from "@/lib/art-direction";
@@ -91,6 +91,34 @@ function NewStory() {
     queryFn: async () =>
       (await supabase.from("voice_profiles").select("id,name").order("created_at")).data ?? [],
   });
+
+  useEffect(() => {
+    const pendingBrief = sessionStorage.getItem("cylia:pending-brief");
+    const pendingStyle = sessionStorage.getItem("cylia:pending-style");
+    sessionStorage.removeItem("cylia:pending-brief");
+    sessionStorage.removeItem("cylia:pending-style");
+
+    if (pendingBrief) {
+      try {
+        const brief = JSON.parse(pendingBrief) as { idea?: unknown; ageRange?: unknown };
+        if (typeof brief.idea === "string") setIdea(brief.idea);
+        if (
+          typeof brief.ageRange === "string" &&
+          AGE_RANGES.some((ageRange) => ageRange.id === brief.ageRange)
+        ) {
+          setAge(brief.ageRange);
+        }
+      } catch {
+        sessionStorage.removeItem("cylia:pending-brief");
+      }
+    }
+
+    const selectedStyle = ART_STYLES.find((artStyle) => artStyle.id === pendingStyle);
+    if (selectedStyle) {
+      setStyle(selectedStyle.id);
+      setDirectionId(null);
+    }
+  }, []);
 
   async function create() {
     if (idea.trim().length < 3) {
@@ -304,13 +332,12 @@ function NewStory() {
                       : "hover:bg-secondary",
                   )}
                 >
-                  {STYLE_ART[s.id] && (
-                    <img
-                      src={STYLE_ART[s.id]}
-                      alt={`${s.id} illustration of a lantern-lit forest adventure`}
-                      className="aspect-[4/3] w-full object-contain bg-secondary"
-                    />
-                  )}
+                  <img
+                    src={STYLE_SAMPLES[s.id].image}
+                    alt={`${s.id} illustration of Fern and Ember`}
+                    loading="lazy"
+                    className="aspect-[2/3] w-full bg-secondary object-cover"
+                  />
                   <span className="flex flex-col gap-1 p-4">
                     <span className="font-semibold">{s.id}</span>
                     <span className="text-xs text-muted-foreground">{s.hint}</span>

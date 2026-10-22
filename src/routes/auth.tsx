@@ -7,7 +7,7 @@ import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import hero from "@/assets/hero.jpg";
+import hero from "@/assets/hero.webp";
 
 const PREVIEW_ORIGIN = "https://8080-iglrw5o9k7hus7i62a4nu-99c4f93e.us3.manus.computer";
 
@@ -38,14 +38,15 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const autoGoogleStarted = useRef(false);
-  const browserOrigin = window.location.origin;
+  const browserOrigin = typeof window === "undefined" ? "" : window.location.origin;
   const configuredOrigin = import.meta.env["VITE_APP_URL"] as string | undefined;
   // OAuth must never use a user's localhost: Google would return to their own
   // machine instead of this running CyliaTales instance. The configured origin
   // wins, with the active preview as a safe fallback for local clones.
   const callbackOrigin = (configuredOrigin || PREVIEW_ORIGIN).replace(/\/$/, "");
   const localOrigin =
-    window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
   const handoffToPublic = localOrigin && callbackOrigin !== browserOrigin;
   const callbackUrl = `${callbackOrigin}/auth/callback?returnTo=%2Fstudio`;
 

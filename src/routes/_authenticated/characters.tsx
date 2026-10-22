@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { generateImage } from "@/lib/studio.functions";
 import { ART_STYLES, CHARACTER_KINDS } from "@/lib/catalog";
 import { uploadBase64, uploadFile, useMediaUrl } from "@/lib/media";
-import reference from "@/assets/character-lock.asset.json";
+import { WORLD_REFERENCES } from "@/lib/showcase";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -138,8 +138,8 @@ function Characters() {
       />
       <div className="mb-8 flex flex-wrap items-center gap-6 border-y py-5">
         <img
-          src={reference.url}
-          alt="Character design reference showing the same child and fox across multiple poses"
+          src={WORLD_REFERENCES.characterSheet.image}
+          alt="Character sheet for Fern and Ember, showing their consistent features and clothing"
           className="h-36 w-64 rounded-lg object-contain"
         />
         <div>
