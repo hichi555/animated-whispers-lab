@@ -17,8 +17,10 @@ import { Route as AuthenticatedActivitiesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedCharactersRouteImport } from './routes/_authenticated/characters'
 import { Route as AuthenticatedLabsRouteImport } from './routes/_authenticated/labs'
 import { Route as AuthenticatedPuppyRouteImport } from './routes/_authenticated/puppy'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
 import { Route as AuthenticatedVoicesRouteImport } from './routes/_authenticated/voices'
+import { Route as AuthenticatedWorldRouteImport } from './routes/_authenticated/world'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ExploreIdRouteImport } from './routes/explore.$id'
 import { Route as AuthenticatedRemixIdRouteImport } from './routes/_authenticated/remix.$id'
@@ -65,6 +67,11 @@ const AuthenticatedPuppyRoute = AuthenticatedPuppyRouteImport.update({
   path: '/puppy',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedStudioRoute = AuthenticatedStudioRouteImport.update({
   id: '/studio',
   path: '/studio',
@@ -73,6 +80,11 @@ const AuthenticatedStudioRoute = AuthenticatedStudioRouteImport.update({
 const AuthenticatedVoicesRoute = AuthenticatedVoicesRouteImport.update({
   id: '/voices',
   path: '/voices',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedWorldRoute = AuthenticatedWorldRouteImport.update({
+  id: '/world',
+  path: '/world',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -115,8 +127,10 @@ export interface FileRoutesByFullPath {
   '/characters': typeof AuthenticatedCharactersRoute
   '/labs': typeof AuthenticatedLabsRoute
   '/puppy': typeof AuthenticatedPuppyRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/voices': typeof AuthenticatedVoicesRoute
+  '/world': typeof AuthenticatedWorldRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/explore/$id': typeof ExploreIdRoute
   '/remix/$id': typeof AuthenticatedRemixIdRoute
@@ -132,8 +146,10 @@ export interface FileRoutesByTo {
   '/characters': typeof AuthenticatedCharactersRoute
   '/labs': typeof AuthenticatedLabsRoute
   '/puppy': typeof AuthenticatedPuppyRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/voices': typeof AuthenticatedVoicesRoute
+  '/world': typeof AuthenticatedWorldRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/explore/$id': typeof ExploreIdRoute
   '/remix/$id': typeof AuthenticatedRemixIdRoute
@@ -151,8 +167,10 @@ export interface FileRoutesById {
   '/_authenticated/characters': typeof AuthenticatedCharactersRoute
   '/_authenticated/labs': typeof AuthenticatedLabsRoute
   '/_authenticated/puppy': typeof AuthenticatedPuppyRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRoute
   '/_authenticated/voices': typeof AuthenticatedVoicesRoute
+  '/_authenticated/world': typeof AuthenticatedWorldRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/explore/$id': typeof ExploreIdRoute
   '/_authenticated/remix/$id': typeof AuthenticatedRemixIdRoute
@@ -170,8 +188,10 @@ export interface FileRouteTypes {
     | '/characters'
     | '/labs'
     | '/puppy'
+    | '/settings'
     | '/studio'
     | '/voices'
+    | '/world'
     | '/auth/callback'
     | '/explore/$id'
     | '/remix/$id'
@@ -187,8 +207,10 @@ export interface FileRouteTypes {
     | '/characters'
     | '/labs'
     | '/puppy'
+    | '/settings'
     | '/studio'
     | '/voices'
+    | '/world'
     | '/auth/callback'
     | '/explore/$id'
     | '/remix/$id'
@@ -205,8 +227,10 @@ export interface FileRouteTypes {
     | '/_authenticated/characters'
     | '/_authenticated/labs'
     | '/_authenticated/puppy'
+    | '/_authenticated/settings'
     | '/_authenticated/studio'
     | '/_authenticated/voices'
+    | '/_authenticated/world'
     | '/auth/callback'
     | '/explore/$id'
     | '/_authenticated/remix/$id'
@@ -280,6 +304,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPuppyRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/studio': {
       id: '/_authenticated/studio'
       path: '/studio'
@@ -292,6 +323,13 @@ declare module '@tanstack/react-router' {
       path: '/voices'
       fullPath: '/voices'
       preLoaderRoute: typeof AuthenticatedVoicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/world': {
+      id: '/_authenticated/world'
+      path: '/world'
+      fullPath: '/world'
+      preLoaderRoute: typeof AuthenticatedWorldRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/auth/callback': {
@@ -344,8 +382,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCharactersRoute: typeof AuthenticatedCharactersRoute
   AuthenticatedLabsRoute: typeof AuthenticatedLabsRoute
   AuthenticatedPuppyRoute: typeof AuthenticatedPuppyRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStudioRoute: typeof AuthenticatedStudioRoute
   AuthenticatedVoicesRoute: typeof AuthenticatedVoicesRoute
+  AuthenticatedWorldRoute: typeof AuthenticatedWorldRoute
   AuthenticatedRemixIdRoute: typeof AuthenticatedRemixIdRoute
   AuthenticatedStoriesIdRoute: typeof AuthenticatedStoriesIdRoute
   AuthenticatedStoriesNewRoute: typeof AuthenticatedStoriesNewRoute
@@ -357,8 +397,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCharactersRoute: AuthenticatedCharactersRoute,
   AuthenticatedLabsRoute: AuthenticatedLabsRoute,
   AuthenticatedPuppyRoute: AuthenticatedPuppyRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStudioRoute: AuthenticatedStudioRoute,
   AuthenticatedVoicesRoute: AuthenticatedVoicesRoute,
+  AuthenticatedWorldRoute: AuthenticatedWorldRoute,
   AuthenticatedRemixIdRoute: AuthenticatedRemixIdRoute,
   AuthenticatedStoriesIdRoute: AuthenticatedStoriesIdRoute,
   AuthenticatedStoriesNewRoute: AuthenticatedStoriesNewRoute,
