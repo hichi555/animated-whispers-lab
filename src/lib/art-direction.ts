@@ -1,7 +1,7 @@
-import enchantedLanterns from "@/assets/style-boards/enchanted-lanterns.png";
-import cloudCartographers from "@/assets/style-boards/cloud-cartographers.png";
-import tideglass from "@/assets/style-boards/tideglass.png";
-import nightGarden from "@/assets/style-boards/night-garden.png";
+import enchantedLanterns from "@/assets/style-boards/enchanted-lanterns.webp";
+import cloudCartographers from "@/assets/style-boards/cloud-cartographers.webp";
+import tideglass from "@/assets/style-boards/tideglass.webp";
+import nightGarden from "@/assets/style-boards/night-garden.webp";
 
 export const ART_DIRECTION_BOARDS = [
   {
