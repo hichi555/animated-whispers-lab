@@ -100,37 +100,39 @@ export function FormatsSection() {
           Start with Fern and Ember, then explore the different ways a story can travel.
         </p>
         <Tabs defaultValue="picture-book" className="mt-8">
-          <div className="overflow-x-auto pb-1">
-            <TabsList className="h-auto w-max min-w-full justify-start gap-1 rounded-xl">
-              {formats.map((format) => (
-                <TabsTrigger key={format.value} value={format.value} className="px-3 py-2.5">
-                  {format.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
+          <TabsList className="h-auto w-full flex-wrap justify-start gap-1 rounded-xl">
+            {formats.map((format) => (
+              <TabsTrigger
+                key={format.value}
+                value={format.value}
+                className="whitespace-nowrap px-3 py-2.5"
+              >
+                {format.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
           {formats.map((format) => (
             <TabsContent key={format.value} value={format.value} className="mt-5">
               <div className="grid gap-6 rounded-3xl border bg-background p-4 shadow-soft sm:p-6 lg:grid-cols-2 lg:gap-10 lg:p-8">
-                <div className="flex min-h-[22rem] items-center justify-center overflow-hidden rounded-2xl bg-secondary">
+                <div
+                  className={`flex items-center justify-center overflow-hidden rounded-2xl ${
+                    format.value === "classroom" ? "min-h-[22rem] bg-secondary" : ""
+                  }`}
+                >
                   {format.value === "classroom" ? (
                     <WorksheetSample />
                   ) : (
                     <figure
-                      className={`relative w-full overflow-hidden ${
-                        format.value === "poster" ? "max-w-sm" : "max-w-2xl"
-                      }`}
+                      className="relative mx-auto flex w-fit max-w-full overflow-hidden rounded-2xl"
                     >
                       <img
                         src={format.image}
                         alt={format.alt}
                         loading="lazy"
-                        className={`w-full object-cover ${
-                          format.value === "poster" ? "aspect-[2/3]" : "aspect-[3/2]"
-                        }`}
+                        className="block h-auto w-auto max-h-[420px] max-w-full object-cover lg:max-h-[560px]"
                       />
                       {format.value === "poster" && (
-                        <figcaption className="absolute inset-x-0 top-0 bg-gradient-to-b from-foreground/60 to-transparent px-4 pb-10 pt-4 text-center font-display text-2xl leading-tight text-background sm:px-6 sm:pt-6 sm:text-3xl">
+                        <figcaption className="absolute inset-x-0 top-0 bg-gradient-to-b from-foreground/60 to-transparent px-4 pb-10 pt-4 text-center font-display text-2xl leading-tight text-balance text-background sm:px-6 sm:pt-6 sm:text-3xl">
                           Fern and the Lantern Fox
                         </figcaption>
                       )}

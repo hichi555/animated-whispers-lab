@@ -116,6 +116,11 @@ export const SAMPLE_BOOK = {
       fr: "Une aventure du soir pour les 4–6 ans",
       es: "Una aventura para la hora de dormir, de 4 a 6 años",
     },
+    blurb: {
+      en: "A lantern goes out. A fox lights the way. A gentle story about being brave in the dark, and the friends who make it easier.",
+      fr: "Une lanterne s'éteint. Un renard éclaire le chemin. Une histoire douce sur le courage dans le noir, et sur les amis qui le rendent plus facile.",
+      es: "Un farol se apaga. Un zorro ilumina el camino. Una historia tierna sobre ser valiente en la oscuridad y sobre los amigos que lo hacen más fácil.",
+    },
   },
   pages: [
     {

@@ -25,7 +25,7 @@ export function SampleReader() {
   const currentImage = imageForPage(pageIndex);
   const currentText =
     pageIndex < 0
-      ? `${SAMPLE_BOOK.cover.title[language]}. ${SAMPLE_BOOK.cover.subtitle[language]}`
+      ? `${SAMPLE_BOOK.cover.title[language]}. ${SAMPLE_BOOK.cover.blurb[language]}`
       : (SAMPLE_BOOK.pages[pageIndex]?.text[language] ?? SAMPLE_BOOK.cover.subtitle[language]);
   const currentLanguage = LANGUAGES.find((item) => item.id === language)!;
   const isCover = pageIndex < 0;
@@ -128,7 +128,7 @@ export function SampleReader() {
       </div>
 
       <div className="grid overflow-hidden rounded-3xl border bg-card shadow-soft lg:grid-cols-2">
-        <div className="relative self-start bg-secondary">
+        <div className="relative aspect-[3/2] min-h-0 bg-secondary lg:aspect-auto">
           {outgoingImage && (
             <img
               src={outgoingImage}
@@ -147,7 +147,7 @@ export function SampleReader() {
                 ? "Fern and Ember beneath the trees on the cover of their story"
                 : `Fern and Ember in the illustration for page ${pageIndex + 1}`
             }
-            className={`aspect-[3/2] w-full object-cover transition-opacity duration-200 motion-reduce:transition-none lg:aspect-[3/2] ${
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-200 motion-reduce:transition-none ${
               outgoingImage && !fading ? "opacity-0" : "opacity-100"
             }`}
           />
@@ -157,7 +157,7 @@ export function SampleReader() {
                 outgoingImage && !fading ? "opacity-0" : "opacity-100"
               }`}
             >
-              <p className="font-display text-3xl leading-tight sm:text-4xl">
+              <p className="font-display text-3xl leading-tight text-balance sm:text-4xl">
                 {SAMPLE_BOOK.cover.title[language]}
               </p>
               <p className="mt-2 text-sm font-medium">{SAMPLE_BOOK.cover.subtitle[language]}</p>
@@ -169,13 +169,8 @@ export function SampleReader() {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
               {isCover ? "The cover" : `Fern and Ember · ${pageIndex + 1}`}
             </p>
-            {isCover && (
-              <h3 className="mt-5 font-display text-3xl leading-tight">
-                {SAMPLE_BOOK.cover.title[language]}
-              </h3>
-            )}
             <p className="mt-5 font-display text-2xl leading-[1.65] text-foreground sm:text-3xl sm:leading-[1.65]">
-              {isCover ? SAMPLE_BOOK.cover.subtitle[language] : currentText}
+              {isCover ? SAMPLE_BOOK.cover.blurb[language] : currentText}
             </p>
           </div>
           <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t pt-5">

@@ -49,7 +49,7 @@ function Styles() {
           feeling each style brings to the same cast.
         </p>
       </header>
-      <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 xl:grid-cols-7">
+      <div className="mt-9 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
         {ART_STYLES.map(({ id, hint }) => {
           const sample = STYLE_SAMPLES[id];
           return (

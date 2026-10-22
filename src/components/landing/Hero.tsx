@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import hero from "@/assets/hero.webp";
@@ -17,9 +17,16 @@ export function Hero() {
   const navigate = useNavigate();
   const [idea, setIdea] = useState("");
   const [ageRange, setAgeRange] = useState<string>(AGE_RANGES[1].id);
+  const [showIdeaHint, setShowIdeaHint] = useState(false);
+  const ideaRef = useRef<HTMLTextAreaElement>(null);
 
   function startStory() {
-    if (idea.trim().length < 3) return;
+    if (idea.trim().length < 3) {
+      setShowIdeaHint(true);
+      ideaRef.current?.focus();
+      return;
+    }
+    setShowIdeaHint(false);
     sessionStorage.setItem("cylia:pending-brief", JSON.stringify({ idea: idea.trim(), ageRange }));
     void navigate({ to: "/stories/new" });
   }
@@ -44,9 +51,14 @@ export function Hero() {
               What story should we make?
             </label>
             <Textarea
+              ref={ideaRef}
               id="story-idea"
               value={idea}
-              onChange={(event) => setIdea(event.target.value)}
+              onChange={(event) => {
+                const nextIdea = event.target.value;
+                setIdea(nextIdea);
+                if (nextIdea.trim().length >= 3) setShowIdeaHint(false);
+              }}
               placeholder="A shy lighthouse cat who is afraid of the dark…"
               className="mt-3 min-h-24 resize-y bg-background text-base"
             />
@@ -81,7 +93,10 @@ export function Hero() {
                   <button
                     key={starter}
                     type="button"
-                    onClick={() => setIdea(starter)}
+                    onClick={() => {
+                      setIdea(starter);
+                      setShowIdeaHint(false);
+                    }}
                     className="rounded-full bg-secondary px-3 py-2 text-left text-xs leading-4 text-secondary-foreground transition-colors hover:bg-primary/10 motion-reduce:transition-none"
                   >
                     {starter}
@@ -91,11 +106,16 @@ export function Hero() {
             </div>
             <Button
               className="mt-5 w-full sm:w-auto"
-              disabled={idea.trim().length < 3}
               onClick={startStory}
             >
               Start this story <ArrowRight />
             </Button>
+            <p
+              aria-live="polite"
+              className={`mt-2 text-xs text-destructive ${showIdeaHint ? "" : "sr-only"}`}
+            >
+              {showIdeaHint ? "Add a line or pick a starter above." : ""}
+            </p>
           </div>
           <p className="mt-4 text-xs leading-5 text-muted-foreground">
             Private by default · Review every draft · Your story stays yours
