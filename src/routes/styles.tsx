@@ -13,10 +13,11 @@ export const Route = createFileRoute("/styles")({
         content:
           "See Fern and Ember in fourteen art styles, with a note on what each style is best for.",
       },
-      { property: "og:title", content: "Fourteen ways to tell the same story — CyliaTales" },
+      { property: "og:title", content: "Fourteen styles, fourteen different scenes — CyliaTales" },
       {
         property: "og:description",
-        content: "Compare fourteen art styles using the same story and cast.",
+        content:
+          "Explore fourteen distinct scenes in different art styles with the recognisable Fern and Ember cast.",
       },
       { property: "og:type", content: "website" },
     ],
@@ -42,11 +43,12 @@ function Styles() {
           A side-by-side art direction guide
         </p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-6xl">
-          Fourteen ways to tell the same story.
+          A new scene for every style.
         </h1>
         <p className="mt-5 text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-          Every sample shows Fern and Ember together, so you can compare the materials, colour and
-          feeling each style brings to the same cast.
+          Fourteen styles, fourteen different scenes, one recognisable cast. Fern and Ember keep
+          their faces, colours and outfits in every style, while the medium changes how the story
+          feels.
         </p>
       </header>
       <div className="mt-9 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
@@ -59,7 +61,7 @@ function Styles() {
             >
               <img
                 src={sample.image}
-                alt={`${id} illustration of Fern and Ember`}
+                alt={sample.alt}
                 loading="lazy"
                 className="aspect-[2/3] w-full object-cover"
               />

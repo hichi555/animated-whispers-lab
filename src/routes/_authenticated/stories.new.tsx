@@ -334,7 +334,7 @@ function NewStory() {
                 >
                   <img
                     src={STYLE_SAMPLES[s.id].image}
-                    alt={`${s.id} illustration of Fern and Ember`}
+                    alt={STYLE_SAMPLES[s.id].alt}
                     loading="lazy"
                     className="aspect-[2/3] w-full bg-secondary object-cover"
                   />

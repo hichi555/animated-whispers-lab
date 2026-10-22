@@ -35,73 +35,87 @@ export const STYLE_SAMPLES = {
     image: softWatercolor,
     slug: "soft-watercolor",
     bestFor: "Bedtime stories and gentle feelings",
+    alt: "Fern and Ember: Fern asleep in an attic bed, Ember curled at her feet.",
   },
   "Gouache storybook": {
     image: gouacheStorybook,
     slug: "gouache-storybook",
     bestFor: "Classic picture books with bold shapes",
+    alt: "Fern and Ember: Fern pulls a seed wagon past a red farmhouse.",
   },
   "Colored pencil": {
     image: coloredPencil,
     slug: "colored-pencil",
     bestFor: "Cosy, hand-made keepsakes",
+    alt: "Fern and Ember: Fern kneads dough in an autumn kitchen.",
   },
   "Paper cut-out": {
     image: paperCutOut,
     slug: "paper-cut-out",
     bestFor: "Playful books for early readers",
+    alt: "Fern and Ember: Fern flies a kite on a seaside cliff.",
   },
   "3D clay": {
     image: threeDClay,
     slug: "3d-clay",
     bestFor: "Funny stories for the youngest readers",
+    alt: "Fern and Ember: Fern stomps in a mud puddle while Ember shakes off water.",
   },
   "Ink & wash": {
     image: inkWash,
     slug: "ink-wash",
     bestFor: "Timeless fables and literary tales",
+    alt: "Fern and Ember: Fern and Ember watch a heron by a misty river.",
   },
   "3D cartoon": {
     image: threeDCartoon,
     slug: "3d-cartoon",
     bestFor: "Big adventures with animated energy",
+    alt: "Fern and Ember: Rafting down a canyon river.",
   },
   "Clay village": {
     image: clayVillage,
     slug: "clay-village",
     bestFor: "World-building and place-led stories",
+    alt: "Fern and Ember: Market day in a miniature village square.",
   },
   "Clay character": {
     image: clayCharacter,
     slug: "clay-character",
     bestFor: "Close, character-led emotional moments",
+    alt: "Fern and Ember: Ember comforts a tearful Fern on a doorstep.",
   },
   "Neon fantasy": {
     image: neonFantasy,
     slug: "neon-fantasy",
     bestFor: "Magical, dreamlike and space stories",
+    alt: "Fern and Ember: Floating through space in bubble helmets.",
   },
   "Oil painting": {
     image: oilPainting,
     slug: "oil-painting",
     bestFor: "Heirloom gift books",
+    alt: "Fern and Ember: Reading by a library fireplace in winter.",
   },
   Engraving: {
     image: engraving,
     slug: "engraving",
     bestFor: "Fairy tales and folklore",
+    alt: "Fern and Ember: Facing a castle beyond a thorny forest.",
   },
   "Enchanted realism": {
     image: enchantedRealism,
     slug: "enchanted-realism",
     bestFor: "Immersive fantasy for older readers",
+    alt: "Fern and Ember: Crossing an ancient mossy bridge into a valley of glowing trees.",
   },
   "Comic book": {
     image: comicBook,
     slug: "comic-book",
     bestFor: "Action stories with graphic-novel pacing",
+    alt: "Fern and Ember: Chasing a raccoon thief across night rooftops.",
   },
-} satisfies Record<ArtStyleId, { image: string; slug: string; bestFor: string }>;
+} satisfies Record<ArtStyleId, { image: string; slug: string; bestFor: string; alt: string }>;
 
 export const SAMPLE_BOOK = {
   cover: {

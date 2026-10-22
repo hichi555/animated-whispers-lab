@@ -16,7 +16,7 @@ export function StyleGallery() {
             Same cast. Fourteen styles.
           </h2>
           <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
-            Fern and Ember stay the same while the materials, light and linework change.
+            Each style suits a different kind of story. Fern and Ember stay recognisable throughout.
           </p>
         </div>
         <Button variant="outline" asChild>
@@ -35,7 +35,7 @@ export function StyleGallery() {
             >
               <img
                 src={sample.image}
-                alt={`${id} illustration of Fern and Ember`}
+                alt={sample.alt}
                 loading="lazy"
                 className="aspect-[2/3] w-full object-cover"
               />
