@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as AuthenticatedActivitiesRouteImport } from './routes/_authenticated/activities'
 import { Route as AuthenticatedCharactersRouteImport } from './routes/_authenticated/characters'
+import { Route as AuthenticatedCreateRouteImport } from './routes/_authenticated/create'
 import { Route as AuthenticatedLabsRouteImport } from './routes/_authenticated/labs'
 import { Route as AuthenticatedPuppyRouteImport } from './routes/_authenticated/puppy'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -55,6 +56,11 @@ const AuthenticatedActivitiesRoute = AuthenticatedActivitiesRouteImport.update({
 const AuthenticatedCharactersRoute = AuthenticatedCharactersRouteImport.update({
   id: '/characters',
   path: '/characters',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCreateRoute = AuthenticatedCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLabsRoute = AuthenticatedLabsRouteImport.update({
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/explore': typeof ExploreRouteWithChildren
   '/activities': typeof AuthenticatedActivitiesRoute
   '/characters': typeof AuthenticatedCharactersRoute
+  '/create': typeof AuthenticatedCreateRoute
   '/labs': typeof AuthenticatedLabsRoute
   '/puppy': typeof AuthenticatedPuppyRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/explore': typeof ExploreRouteWithChildren
   '/activities': typeof AuthenticatedActivitiesRoute
   '/characters': typeof AuthenticatedCharactersRoute
+  '/create': typeof AuthenticatedCreateRoute
   '/labs': typeof AuthenticatedLabsRoute
   '/puppy': typeof AuthenticatedPuppyRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/explore': typeof ExploreRouteWithChildren
   '/_authenticated/activities': typeof AuthenticatedActivitiesRoute
   '/_authenticated/characters': typeof AuthenticatedCharactersRoute
+  '/_authenticated/create': typeof AuthenticatedCreateRoute
   '/_authenticated/labs': typeof AuthenticatedLabsRoute
   '/_authenticated/puppy': typeof AuthenticatedPuppyRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/activities'
     | '/characters'
+    | '/create'
     | '/labs'
     | '/puppy'
     | '/settings'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/activities'
     | '/characters'
+    | '/create'
     | '/labs'
     | '/puppy'
     | '/settings'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/_authenticated/activities'
     | '/_authenticated/characters'
+    | '/_authenticated/create'
     | '/_authenticated/labs'
     | '/_authenticated/puppy'
     | '/_authenticated/settings'
@@ -288,6 +300,13 @@ declare module '@tanstack/react-router' {
       path: '/characters'
       fullPath: '/characters'
       preLoaderRoute: typeof AuthenticatedCharactersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/create': {
+      id: '/_authenticated/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof AuthenticatedCreateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/labs': {
@@ -380,6 +399,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedActivitiesRoute: typeof AuthenticatedActivitiesRoute
   AuthenticatedCharactersRoute: typeof AuthenticatedCharactersRoute
+  AuthenticatedCreateRoute: typeof AuthenticatedCreateRoute
   AuthenticatedLabsRoute: typeof AuthenticatedLabsRoute
   AuthenticatedPuppyRoute: typeof AuthenticatedPuppyRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -395,6 +415,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedActivitiesRoute: AuthenticatedActivitiesRoute,
   AuthenticatedCharactersRoute: AuthenticatedCharactersRoute,
+  AuthenticatedCreateRoute: AuthenticatedCreateRoute,
   AuthenticatedLabsRoute: AuthenticatedLabsRoute,
   AuthenticatedPuppyRoute: AuthenticatedPuppyRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,

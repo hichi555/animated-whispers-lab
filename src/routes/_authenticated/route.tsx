@@ -11,6 +11,7 @@ import {
   Settings2,
   Globe2,
   Compass,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ const NAV = [
       { to: "/studio", label: "Overview", icon: LayoutGrid },
       { to: "/stories/new", label: "New story", icon: PenTool },
       { to: "/world", label: "Story World", icon: Globe2 },
+      { to: "/create", label: "AI Create", icon: Sparkles },
     ],
   },
   {
