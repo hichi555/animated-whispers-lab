@@ -27,7 +27,7 @@ export function Logo({ className, light }: { className?: string; light?: boolean
           light ? "text-sidebar-foreground" : "text-foreground",
         )}
       >
-        CyliaTales
+        CyliaAI
       </span>
     </Link>
   );

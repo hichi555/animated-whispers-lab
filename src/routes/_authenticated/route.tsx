@@ -109,7 +109,7 @@ function StudioLayout() {
             <Logo />
           </div>
           <p className="hidden text-xs font-semibold uppercase text-muted-foreground md:block">
-            CyliaTales / Story studio
+            CyliaAI / Creative studio
           </p>
           <div className="flex items-center gap-2">
             <Button asChild variant="outline" size="sm">

@@ -80,10 +80,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CyliaTales — Children's Story Studio" },
+      { title: "CyliaAI — Creative Production Studio" },
       {
         name: "description",
-        content: "Write, illustrate and narrate original children's books with AI.",
+        content: "Create professional ebooks, audiobooks, avatars, anime scenes and media with AI.",
       },
     ],
     links: [
