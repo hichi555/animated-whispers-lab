@@ -5,14 +5,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { generateStory } from "@/lib/studio.functions";
+import { checkStorySafety, generateStory } from "@/lib/studio.functions";
 import { AGE_RANGES, ART_STYLES, THEMES, TONES, VOICES } from "@/lib/catalog";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { STYLE_ART } from "@/lib/style-art";
-import { BookOpenText, Check, Clock3, FileText, LockKeyhole, RefreshCw, Sparkles } from "lucide-react";
+import { BookOpenText, Check, Clock3, FileText, LockKeyhole, RefreshCw, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
 import { ArtDirectionPicker } from "@/components/ArtDirectionPicker";
 import { ART_DIRECTION_BOARDS } from "@/lib/art-direction";
 
@@ -65,6 +65,7 @@ function NewStory() {
   const { user } = useAuth();
   const nav = useNavigate();
   const gen = useServerFn(generateStory);
+  const checkSafety = useServerFn(checkStorySafety);
   const [idea, setIdea] = useState("");
   const [age, setAge] = useState<string>(AGE_RANGES[1].id);
   const [theme, setTheme] = useState<string | null>(null);
@@ -76,6 +77,7 @@ function NewStory() {
   const [pages, setPages] = useState(8);
   const [cast, setCast] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [safety, setSafety] = useState<"idle" | "checking" | "passed" | "blocked" | "error">("idle");
   const [draft, setDraft] = useState<{
     title: string;
     coverPrompt: string;
@@ -100,6 +102,16 @@ function NewStory() {
     if (!user) return;
     setBusy(true);
     try {
+      if (safety !== "passed") {
+        setSafety("checking");
+        const safetyResult = await checkSafety({ data: { content: idea, ageRange: age } });
+        if (safetyResult.status === "blocked") {
+          setSafety("blocked");
+          toast.error("This idea cannot be generated for a children's story. Please revise it.");
+          return;
+        }
+        setSafety("passed");
+      }
       const picked = chars.filter((c) => cast.includes(c.id));
       const ageInfo = AGE_RANGES.find((a) => a.id === age);
       if (!ageInfo) throw new Error("Choose a reader age.");
@@ -212,9 +224,45 @@ function NewStory() {
           <Textarea
             rows={4}
             value={idea}
-            onChange={(e) => setIdea(e.target.value)}
+            onChange={(e) => {
+              setIdea(e.target.value);
+              setSafety("idle");
+            }}
             placeholder="A shy hedgehog who's afraid of the dark finds a firefly friend…"
           />
+          <div
+            className={cn(
+              "mt-4 flex items-start gap-3 rounded-xl border p-4 text-sm",
+              safety === "passed" && "border-accent/40 bg-accent/10",
+              safety === "blocked" && "border-destructive/40 bg-destructive/10",
+              safety !== "passed" && safety !== "blocked" && "bg-secondary/45",
+            )}
+          >
+            {safety === "blocked" ? (
+              <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+            ) : safety === "passed" ? (
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            ) : (
+              <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            )}
+            <div>
+              <p className="font-semibold">
+                {safety === "checking"
+                  ? "Checking this idea…"
+                  : safety === "passed"
+                    ? "Safety review passed"
+                    : safety === "blocked"
+                      ? "Please revise this idea"
+                      : "Safety review before generation"}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                {safety === "passed"
+                  ? "The idea is cleared for the selected age band. You can continue to story planning."
+                  : "Every story idea is checked before writing or illustration begins."
+                }
+              </p>
+            </div>
+          </div>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <span className="mr-1 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Start from</span>
             {["A bedtime ritual becomes an adventure", "A child finds a place to belong", "A tiny creature solves a big problem"].map((starter) => (

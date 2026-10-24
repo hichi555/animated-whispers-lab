@@ -14,6 +14,40 @@ const StoryInput = z.object({
   characters: z.array(z.object({ name: z.string(), description: z.string() })),
 });
 
+const SafetyInput = z.object({
+  content: z.string().min(3).max(12000),
+  ageRange: z.string().max(40),
+});
+
+export const checkStorySafety = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => SafetyInput.parse(d))
+  .handler(async ({ data }) => {
+    const { requireKey, GATEWAY, gatewayError } = await import("./ai-gateway.server");
+    const response = await fetch(`${GATEWAY}/moderations`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${requireKey()}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "omni-moderation-latest",
+        input: `Children's story request for age band ${data.ageRange}:\n${data.content}`,
+      }),
+    });
+    if (!response.ok) throw await gatewayError(response);
+    const result = (await response.json()) as {
+      results?: Array<{ flagged?: boolean; categories?: Record<string, boolean> }>;
+    };
+    const first = result.results?.[0];
+    const flagged = Boolean(first?.flagged);
+    return {
+      status: flagged ? ("blocked" as const) : ("passed" as const),
+      flaggedCategories: flagged
+        ? Object.entries(first?.categories ?? {})
+            .filter(([, value]) => value)
+            .map(([key]) => key)
+        : [],
+    };
+  });
+
 export const generateStory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => StoryInput.parse(d))
