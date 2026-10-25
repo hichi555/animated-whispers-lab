@@ -1,7 +1,10 @@
 import { createOpenAI } from "@ai-sdk/openai";
 
 export const GATEWAY =
-  process.env["AI_API_BASE"] ?? process.env["OPENAI_API_BASE"] ?? "https://api.openai.com/v1";
+  process.env["AI_API_BASE"] ??
+  process.env["OPENAI_API_BASE"] ??
+  process.env["OPENAI_BASE_URL"] ??
+  "https://api.openai.com/v1";
 export function requireKey() {
   const key = process.env["AI_API_KEY"] ?? process.env["OPENAI_API_KEY"];
   if (!key) throw new Error("AI is not configured.");
@@ -9,7 +12,7 @@ export function requireKey() {
 }
 export function textModel(key: string) {
   return createOpenAI({ baseURL: GATEWAY, apiKey: key }).responses(
-    process.env["AI_TEXT_MODEL"] ?? "gpt-4o-mini",
+    process.env["AI_TEXT_MODEL"] ?? process.env["OPENAI_TEXT_MODEL"] ?? "gpt-5",
   );
 }
 export async function gatewayError(res: Response) {

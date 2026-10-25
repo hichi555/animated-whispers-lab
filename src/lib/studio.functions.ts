@@ -19,6 +19,16 @@ const SafetyInput = z.object({
   ageRange: z.string().max(40),
 });
 
+export const getStudioProviderStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => ({
+    text: Boolean(process.env["AI_API_KEY"] ?? process.env["OPENAI_API_KEY"]),
+    image: Boolean(process.env["AI_API_KEY"] ?? process.env["OPENAI_API_KEY"]),
+    elevenLabs: Boolean(process.env["ELEVENLABS_API_KEY"]),
+    motion: Boolean(process.env["AI_API_KEY"] ?? process.env["OPENAI_API_KEY"]),
+    baseUrlConfigured: Boolean(process.env["AI_API_BASE"] ?? process.env["OPENAI_API_BASE"] ?? process.env["OPENAI_BASE_URL"]),
+  }));
+
 export const checkStorySafety = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => SafetyInput.parse(d))

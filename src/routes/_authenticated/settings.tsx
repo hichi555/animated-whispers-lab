@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   Accessibility,
@@ -20,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/use-auth";
 import { ART_DIRECTION_BOARDS } from "@/lib/art-direction";
+import { getStudioProviderStatus } from "@/lib/studio.functions";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   ssr: false,
@@ -94,8 +96,10 @@ function SettingRow({
 
 function SettingsPage() {
   const { user } = useAuth();
+  const getProviderStatus = useServerFn(getStudioProviderStatus);
   const [preferences, setPreferences] = useState<Preferences>(DEFAULTS);
   const [saved, setSaved] = useState(true);
+  const [providerStatus, setProviderStatus] = useState<Awaited<ReturnType<typeof getStudioProviderStatus>> | null>(null);
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -104,6 +108,9 @@ function SettingsPage() {
       toast.error("Your saved preferences could not be loaded.");
     }
   }, []);
+  useEffect(() => {
+    getProviderStatus().then(setProviderStatus).catch(() => setProviderStatus(null));
+  }, [getProviderStatus]);
   const selectedBoard = useMemo(
     () =>
       ART_DIRECTION_BOARDS.find((board) => board.id === preferences.artDirection) ??
@@ -154,6 +161,24 @@ function SettingsPage() {
           <RotateCcw /> Restore defaults
         </Button>
       </div>
+      <section className="mb-8 rounded-2xl border bg-card p-5 shadow-soft md:p-6" aria-labelledby="provider-status-title">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Production infrastructure</p>
+            <h2 id="provider-status-title" className="mt-2 text-xl font-semibold">AI provider connections</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">Keys are checked server-side. Values are never sent to the browser or stored in preferences.</p>
+          </div>
+          <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-semibold">{providerStatus?.baseUrlConfigured ? "Gateway configured" : "Gateway needs configuration"}</span>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ["Writing & safety", providerStatus?.text],
+            ["Illustration", providerStatus?.image],
+            ["ElevenLabs narration", providerStatus?.elevenLabs],
+            ["Motion delivery", providerStatus?.motion],
+          ].map(([label, connected]) => <div key={label as string} className="flex items-center justify-between rounded-xl border bg-background/60 p-3"><span className="text-sm font-medium">{label as string}</span><span className={connected ? "text-xs font-semibold text-primary" : "text-xs font-semibold text-muted-foreground"}>{connected ? "Connected" : "Not configured"}</span></div>)}
+        </div>
+      </section>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
           <section className="settings-card">

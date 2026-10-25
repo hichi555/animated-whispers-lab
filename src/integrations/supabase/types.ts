@@ -405,6 +405,177 @@ export type Database = {
           },
         ];
       };
+      creation_projects: {
+        Row: {
+          age_range: string | null;
+          brief: string;
+          created_at: string;
+          creation_mode: string;
+          id: string;
+          language: string;
+          safety_metadata: Json;
+          safety_status: string;
+          selected_models: Json;
+          status: string;
+          story_id: string | null;
+          style_id: string | null;
+          title: string;
+          updated_at: string;
+          user_id: string;
+          voice_profile_id: string | null;
+        };
+        Insert: {
+          age_range?: string | null;
+          brief: string;
+          created_at?: string;
+          creation_mode: string;
+          id?: string;
+          language?: string;
+          safety_metadata?: Json;
+          safety_status?: string;
+          selected_models?: Json;
+          status?: string;
+          story_id?: string | null;
+          style_id?: string | null;
+          title: string;
+          updated_at?: string;
+          user_id?: string;
+          voice_profile_id?: string | null;
+        };
+        Update: {
+          age_range?: string | null;
+          brief?: string;
+          created_at?: string;
+          creation_mode?: string;
+          id?: string;
+          language?: string;
+          safety_metadata?: Json;
+          safety_status?: string;
+          selected_models?: Json;
+          status?: string;
+          story_id?: string | null;
+          style_id?: string | null;
+          title?: string;
+          updated_at?: string;
+          user_id?: string;
+          voice_profile_id?: string | null;
+        };
+        Relationships: [];
+      };
+      character_locks: {
+        Row: {
+          character_id: string | null;
+          created_at: string;
+          id: string;
+          identity_prompt: string;
+          metadata: Json;
+          name: string;
+          negative_prompt: string | null;
+          reference_paths: string[];
+          status: string;
+          style_id: string | null;
+          updated_at: string;
+          user_id: string;
+          version: number;
+        };
+        Insert: {
+          character_id?: string | null;
+          created_at?: string;
+          id?: string;
+          identity_prompt: string;
+          metadata?: Json;
+          name: string;
+          negative_prompt?: string | null;
+          reference_paths?: string[];
+          status?: string;
+          style_id?: string | null;
+          updated_at?: string;
+          user_id?: string;
+          version?: number;
+        };
+        Update: {
+          character_id?: string | null;
+          created_at?: string;
+          id?: string;
+          identity_prompt?: string;
+          metadata?: Json;
+          name?: string;
+          negative_prompt?: string | null;
+          reference_paths?: string[];
+          status?: string;
+          style_id?: string | null;
+          updated_at?: string;
+          user_id?: string;
+          version?: number;
+        };
+        Relationships: [];
+      };
+      creation_project_characters: {
+        Row: {
+          character_lock_id: string;
+          created_at: string;
+          project_id: string;
+          role: string;
+        };
+        Insert: {
+          character_lock_id: string;
+          created_at?: string;
+          project_id: string;
+          role?: string;
+        };
+        Update: {
+          character_lock_id?: string;
+          created_at?: string;
+          project_id?: string;
+          role?: string;
+        };
+        Relationships: [];
+      };
+      creation_artifacts: {
+        Row: {
+          artifact_type: string;
+          created_at: string;
+          duration_seconds: number | null;
+          id: string;
+          metadata: Json;
+          parent_artifact_id: string | null;
+          project_id: string;
+          provider: string | null;
+          status: string;
+          storage_path: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          artifact_type: string;
+          created_at?: string;
+          duration_seconds?: number | null;
+          id?: string;
+          metadata?: Json;
+          parent_artifact_id?: string | null;
+          project_id: string;
+          provider?: string | null;
+          status?: string;
+          storage_path?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          artifact_type?: string;
+          created_at?: string;
+          duration_seconds?: number | null;
+          id?: string;
+          metadata?: Json;
+          parent_artifact_id?: string | null;
+          project_id?: string;
+          provider?: string | null;
+          status?: string;
+          storage_path?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       voice_profiles: {
         Row: {
           consent_confirmed: boolean;
