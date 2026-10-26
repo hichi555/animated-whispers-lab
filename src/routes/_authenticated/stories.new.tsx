@@ -17,6 +17,10 @@ import { ArtDirectionPicker } from "@/components/ArtDirectionPicker";
 import { ART_DIRECTION_BOARDS } from "@/lib/art-direction";
 
 export const Route = createFileRoute("/_authenticated/stories/new")({
+  validateSearch: (search: Record<string, unknown>): { idea?: string; age?: string } => ({
+    ...(typeof search["idea"] === "string" ? { idea: search["idea"] } : {}),
+    ...(typeof search["age"] === "string" ? { age: search["age"] } : {}),
+  }),
   head: () => ({
     meta: [
       { title: "New story — CyliaTales" },
@@ -62,12 +66,13 @@ function Chip({
 }
 
 function NewStory() {
+  const { idea: seededIdea, age: seededAge } = Route.useSearch();
   const { user } = useAuth();
   const nav = useNavigate();
   const gen = useServerFn(generateStory);
   const checkSafety = useServerFn(checkStorySafety);
-  const [idea, setIdea] = useState("");
-  const [age, setAge] = useState<string>(AGE_RANGES[1].id);
+  const [idea, setIdea] = useState(seededIdea ?? "");
+  const [age, setAge] = useState<string>(AGE_RANGES.some((item) => item.id === seededAge) ? seededAge! : AGE_RANGES[1].id);
   const [theme, setTheme] = useState<string | null>(null);
   const [tone, setTone] = useState<string | null>("Cozy");
   const [style, setStyle] = useState<string>(ART_STYLES[0].id);
