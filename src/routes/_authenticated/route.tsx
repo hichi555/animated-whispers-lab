@@ -30,7 +30,7 @@ const NAV = [
       { to: "/studio", label: "Overview", icon: LayoutGrid },
       { to: "/stories/new", label: "New story", icon: PenTool },
       { to: "/world", label: "Story World", icon: Globe2 },
-      { to: "/create", label: "AI Create", icon: Sparkles },
+      { to: "/create", label: "Story formats", icon: Sparkles },
     ],
   },
   {
@@ -46,7 +46,7 @@ const NAV = [
     group: "Produce",
     items: [
       { to: "/labs", label: "Production", icon: Clapperboard },
-      { to: "/activities", label: "Classroom activities", icon: GraduationCap },
+      { to: "/activities", label: "Story activities", icon: GraduationCap },
     ],
   },
   {
@@ -109,7 +109,7 @@ function StudioLayout() {
             <Logo />
           </div>
           <p className="hidden text-xs font-semibold uppercase text-muted-foreground md:block">
-            CyliaAI / Creative studio
+            CyliaTales / Story studio
           </p>
           <div className="flex items-center gap-2">
             <Button asChild variant="outline" size="sm">

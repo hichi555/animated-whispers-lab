@@ -10,7 +10,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { isSupabaseConfigured, supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 import { reportRuntimeError } from "../lib/runtime-error-reporting";
@@ -80,16 +80,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CyliaAI — Creative Production Studio" },
+      { title: "CyliaTales — Children’s Story Studio" },
       {
         name: "description",
-        content: "Create professional ebooks, audiobooks, avatars, anime scenes and media with AI.",
+        content: "Create illustrated children’s books, comics, read-aloud stories, and animated scenes with CyliaTales.",
       },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/cylia-mark.svg?v=2", type: "image/svg+xml" },
-      { rel: "shortcut icon", href: "/favicon.ico?v=2", type: "image/x-icon" },
       { rel: "apple-touch-icon", href: "/cylia-mark.svg?v=2" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -123,6 +122,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   useEffect(() => {
+    if (!isSupabaseConfigured()) return;
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
         queryClient.clear();

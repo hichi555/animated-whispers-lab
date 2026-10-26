@@ -3,32 +3,12 @@ import { cn } from "@/lib/utils";
 
 export function Logo({ className, light }: { className?: string; light?: boolean }) {
   return (
-    <Link to="/" className={cn("flex items-center gap-2", className)}>
-      <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent text-accent-foreground">
-        <svg
-          viewBox="0 0 24 24"
-          className="h-5 w-5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        >
-          <path d="M3 6.5C3 5.7 3.7 5 4.5 5H10a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4.5A1.5 1.5 0 0 1 3 15.5z" />
-          <path d="M21 6.5c0-.8-.7-1.5-1.5-1.5H14a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h5.5c.8 0 1.5-.7 1.5-1.5z" />
-          <path
-            d="M17 2.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z"
-            fill="currentColor"
-            stroke="none"
-          />
-        </svg>
-      </span>
-      <span
-        className={cn(
-          "font-display text-xl font-semibold",
-          light ? "text-sidebar-foreground" : "text-foreground",
-        )}
-      >
-        CyliaAI
-      </span>
+    <Link to="/" aria-label="CyliaTales home" className={cn("group flex items-center gap-2.5", className)}>
+      <svg viewBox="0 0 40 40" className="h-9 w-9 shrink-0 transition-transform duration-200 group-hover:scale-[1.04]" aria-hidden="true" fill="none">
+        <path d="M29.5 10.8A14.2 14.2 0 1 0 29.5 29.2" stroke="#17484a" strokeWidth="4.3" strokeLinecap="round" />
+        <path d="M30.1 17.8c1.25 1.25 1.25 3.15 0 4.4-1.25-1.25-1.25-3.15 0-4.4Z" fill="#e78c62" />
+      </svg>
+      <span className={cn("font-sans text-[1.24rem] font-extrabold tracking-[-0.045em]", light ? "text-sidebar-foreground" : "text-[#233437]")}>CyliaTales</span>
     </Link>
   );
 }

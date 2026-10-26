@@ -247,6 +247,8 @@ export type Database = {
           shot_type: string;
           story_id: string;
           text: string;
+          translation_text: string | null;
+          translation_language: string | null;
           transition_duration_ms: number;
           transition_easing: string;
           transition_type: string;
@@ -274,6 +276,8 @@ export type Database = {
           shot_type?: string;
           story_id: string;
           text?: string;
+          translation_text?: string | null;
+          translation_language?: string | null;
           transition_duration_ms?: number;
           transition_easing?: string;
           transition_type?: string;
@@ -301,6 +305,8 @@ export type Database = {
           shot_type?: string;
           story_id?: string;
           text?: string;
+          translation_text?: string | null;
+          translation_language?: string | null;
           transition_duration_ms?: number;
           transition_easing?: string;
           transition_type?: string;

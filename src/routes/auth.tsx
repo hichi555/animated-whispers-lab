@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { isSupabaseConfigured, supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import hero from "@/assets/hero.jpg";
 
-const PREVIEW_ORIGIN = "https://8080-iglrw5o9k7hus7i62a4nu-99c4f93e.us3.manus.computer";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -31,6 +30,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const nav = useNavigate();
   const { session } = useAuth();
+  const supabaseReady = isSupabaseConfigured();
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,15 +38,13 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const autoGoogleStarted = useRef(false);
-  const browserOrigin = window.location.origin;
   const configuredOrigin = import.meta.env["VITE_APP_URL"] as string | undefined;
-  // OAuth must never use a user's localhost: Google would return to their own
-  // machine instead of this running CyliaTales instance. The configured origin
-  // wins, with the active preview as a safe fallback for local clones.
-  const callbackOrigin = (configuredOrigin || PREVIEW_ORIGIN).replace(/\/$/, "");
-  const localOrigin =
-    window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-  const handoffToPublic = localOrigin && callbackOrigin !== browserOrigin;
+  const browserOrigin = typeof window === "undefined" ? configuredOrigin ?? "" : window.location.origin;
+  // Use this same CyliaTales deployment unless its public URL is explicitly configured.
+  const callbackOrigin = (configuredOrigin || browserOrigin).replace(/\/$/, "");
+  const localOrigin = typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+  const handoffToPublic = localOrigin && Boolean(configuredOrigin) && callbackOrigin !== browserOrigin;
   const callbackUrl = `${callbackOrigin}/auth/callback?returnTo=%2Fstudio`;
 
   useEffect(() => {
@@ -55,6 +53,9 @@ function AuthPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!supabaseReady) {
+      return;
+    }
     setBusy(true);
     setNotice("");
     try {
@@ -85,6 +86,9 @@ function AuthPage() {
   }
 
   async function google() {
+    if (!supabaseReady) {
+      return;
+    }
     setBusy(true);
     try {
       if (handoffToPublic) {
@@ -107,7 +111,7 @@ function AuthPage() {
 
   useEffect(() => {
     const oauth = new URLSearchParams(window.location.search).get("oauth");
-    if (oauth === "google" && !session && !autoGoogleStarted.current) {
+    if (oauth === "google" && supabaseReady && !session && !autoGoogleStarted.current) {
       autoGoogleStarted.current = true;
       void google();
     }
@@ -125,7 +129,7 @@ function AuthPage() {
             ? "Pick up where your story left off."
             : "Free to start. Your books, characters and voices in one place."}
         </p>
-        <Button variant="outline" disabled={busy} className="mt-8 h-11" onClick={google}>
+        <Button variant="outline" disabled={busy || !supabaseReady} className="mt-8 h-11" onClick={google}>
           Continue with Google
         </Button>
         {notice && (
@@ -169,13 +173,13 @@ function AuthPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <Button type="submit" className="h-11 w-full" disabled={busy}>
+          <Button type="submit" className="h-11 w-full" disabled={busy || !supabaseReady}>
             {busy ? "Please wait…" : mode === "in" ? "Sign in" : "Create account"}
           </Button>
         </form>
         <Button
           variant="link"
-          disabled={busy}
+          disabled={busy || !supabaseReady}
           className="mt-6 justify-start px-0 text-sm text-muted-foreground"
           onClick={() => setMode(mode === "in" ? "up" : "in")}
         >

@@ -27,6 +27,7 @@ import { BookReader } from "@/components/BookReader";
 import { StoryVideo } from "@/components/StoryVideo";
 import { PrintBook } from "@/components/PrintBook";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { usePageIllustration } from "@/hooks/use-page-illustration";
 import { StoryPosterStudio } from "@/components/StoryPosterStudio";
 import { StoryComicStudio } from "@/components/StoryComicStudio";
@@ -377,18 +378,22 @@ function PageCard({ page, story }: { page: Tables<"story_pages">; story: Tables<
   const customSpeak = useServerFn(narrateWithClonedVoice);
   const url = useMediaUrl(page.image_url);
   const [text, setText] = useState(page.text);
+  const [translationText, setTranslationText] = useState(page.translation_text ?? "");
+  const [translationLanguage, setTranslationLanguage] = useState(page.translation_language ?? "Spanish");
   const [busy, setBusy] = useState<"img" | "voice" | null>(null);
   const savedAudio = useMediaUrl(page.audio_url);
   const [audio, setAudio] = useState<string | null>(null);
   const [saveState, setSaveState] = useState("Saved");
   const savedText = useRef(page.text);
+  const savedTranslation = useRef(page.translation_text ?? "");
+  const savedLanguage = useRef(page.translation_language ?? "Spanish");
   useEffect(() => {
-    if (text === savedText.current) return;
+    if (text === savedText.current && translationText === savedTranslation.current && translationLanguage === savedLanguage.current) return;
     const timer = setTimeout(() => {
       void save();
     }, 700);
     return () => clearTimeout(timer);
-  }, [text]);
+  }, [text, translationText, translationLanguage]);
 
   async function illustrate() {
     if (!user) return;
@@ -471,11 +476,13 @@ function PageCard({ page, story }: { page: Tables<"story_pages">; story: Tables<
   }
 
   async function save() {
-    if (text === savedText.current) return;
+    const storyTextChanged = text !== savedText.current;
+    const translationChanged = translationText !== savedTranslation.current || translationLanguage !== savedLanguage.current;
+    if (!storyTextChanged && !translationChanged) return;
     setSaveState("Saving…");
     const { error } = await supabase
       .from("story_pages")
-      .update({ text, audio_url: null })
+      .update({ text, translation_text: translationText.trim() || null, translation_language: translationLanguage.trim() || null, ...(storyTextChanged ? { audio_url: null } : {}) })
       .eq("id", page.id);
     if (error) {
       setSaveState("Not saved");
@@ -483,8 +490,10 @@ function PageCard({ page, story }: { page: Tables<"story_pages">; story: Tables<
       return;
     }
     savedText.current = text;
+    savedTranslation.current = translationText;
+    savedLanguage.current = translationLanguage;
     setSaveState("Saved");
-    setAudio(null);
+    if (storyTextChanged) setAudio(null);
     qc.invalidateQueries({ queryKey: ["pages", story.id] });
   }
 
@@ -521,6 +530,14 @@ function PageCard({ page, story }: { page: Tables<"story_pages">; story: Tables<
           }}
           onBlur={save}
         />
+        <div className="mt-4 border-t pt-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Bilingual side-by-side</p>
+          <div className="mt-2 grid gap-2 sm:grid-cols-[120px_1fr]">
+            <Input aria-label="Translation language" value={translationLanguage} onChange={(e) => { setTranslationLanguage(e.target.value); setSaveState("Unsaved"); }} placeholder="Language" />
+            <Textarea aria-label="Translated page text" rows={3} value={translationText} onChange={(e) => { setTranslationText(e.target.value); setSaveState("Unsaved"); }} onBlur={save} placeholder="Add the reviewed translation for this page…" />
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Your translation stays beside the original in the reader. Text is saved with this page.</p>
+        </div>
         <div className="mt-3 flex flex-wrap gap-2">
           <Button size="sm" variant="outline" disabled={!!busy} onClick={listen}>
             <Volume2 className="h-4 w-4" /> {busy === "voice" ? "Recording…" : "Narrate"}

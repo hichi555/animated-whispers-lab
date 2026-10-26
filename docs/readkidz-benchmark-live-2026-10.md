@@ -1,6 +1,6 @@
 # ReadKidz benchmark — verified October 2026
 
-Research was conducted against official ReadKidz pages and linked official surfaces. The benchmark is used as product evidence, not as a claim that CyliaAI should copy ReadKidz's branding or implementation.
+Research was conducted against official ReadKidz pages and linked official surfaces. The benchmark is used as product evidence, not as a claim that CyliaTales should copy ReadKidz's branding or implementation.
 
 ## Verified product patterns
 
@@ -10,9 +10,9 @@ Its animation workflow is scene-based rather than a traditional keyframe timelin
 
 The public library is an important discovery loop. It exposes categories, age bands, page counts, full online reading, caregiver guides, open questions, and reusable starting points based on an existing story theme. The parent/teacher surfaces emphasize concrete situations such as starting school, big feelings, friendship, bedtime, and social stories for one child and one situation.
 
-The safety surface claims automated pre-generation checks, blocked or flagged content, age-band tuning, human review before public library publication, and adult-owned accounts. Its privacy policy states that children use the service under adult supervision and that parents can request access or deletion. These statements are useful benchmark signals, but CyliaAI should make its own controls and commitments explicit rather than copying vague assurances.
+The safety surface claims automated pre-generation checks, blocked or flagged content, age-band tuning, human review before public library publication, and adult-owned accounts. Its privacy policy states that children use the service under adult supervision and that parents can request access or deletion. These statements are useful benchmark signals, but CyliaTales should make its own controls and commitments explicit rather than copying vague assurances.
 
-## CyliaAI implementation priorities
+## CyliaTales implementation priorities
 
 1. Add a review-first storyboard and per-scene retakes.
 2. Add per-scene duration, pacing, camera preset, transition type, transition duration, and easing controls.

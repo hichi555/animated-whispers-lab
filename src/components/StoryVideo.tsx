@@ -42,6 +42,27 @@ const SHOT_SCALE: Record<string, number> = {
   "Close-up": 1.22,
   Detail: 1.38,
 };
+const EASING_CURVES: Record<string, (value: number) => number> = {
+  linear: (t) => t,
+  "ease-in": (t) => t * t,
+  "ease-out": (t) => 1 - (1 - t) * (1 - t),
+  "ease-in-out": (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
+  spring: (t) => 1 + 2.70158 * Math.pow(t - 1, 3) + 1.70158 * Math.pow(t - 1, 2),
+};
+const CSS_EASING: Record<string, string> = {
+  linear: "linear",
+  "ease-in": "cubic-bezier(0.42, 0, 1, 1)",
+  "ease-out": "cubic-bezier(0, 0, 0.58, 1)",
+  "ease-in-out": "cubic-bezier(0.42, 0, 0.58, 1)",
+  spring: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+};
+function easeProgress(value: number, curve: string) {
+  return (EASING_CURVES[curve] ?? EASING_CURVES["ease-in-out"]!)(value);
+}
+function pacedDuration(page: Page) {
+  const factor = page.pacing === "slow" ? 1.2 : page.pacing === "brisk" ? 0.82 : page.pacing === "dialogue" ? 1.08 : 1;
+  return page.duration_seconds * factor;
+}
 const TRANSITION_CLASS: Record<string, string> = {
   cut: "transition-cut",
   dissolve: "transition-dissolve",
@@ -74,7 +95,7 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
         el.onended = null;
       };
     }
-    const timer = window.setTimeout(advance, page.duration_seconds * 1000);
+    const timer = window.setTimeout(advance, pacedDuration(page) * 1000);
     return () => window.clearTimeout(timer);
   }, [playing, selected, narration, pages.length, page]);
 
@@ -158,7 +179,7 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
         const p = pages[i];
         if (!img || !p) throw new Error("Scene illustration is unavailable");
         const voice = voices[i];
-        const ms = Math.max(p.duration_seconds * 1000, voice ? voice.duration * 1000 + 600 : 0);
+        const ms = Math.max(pacedDuration(p) * 1000, voice ? voice.duration * 1000 + 600 : 0);
         const start = performance.now();
         if (voice) {
           const src = audioCtx.createBufferSource();
@@ -171,7 +192,7 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
           const frame = () => {
             const elapsed = performance.now() - start;
             const t = Math.min(1, elapsed / ms);
-            const ease = t * t * (3 - 2 * t);
+            const ease = easeProgress(t, p.transition_easing ?? "ease-in-out");
             let scale = base,
               dx = 0;
             if (p.camera_motion === "Slow push-in") scale = base * (1 + 0.1 * ease);
@@ -187,7 +208,7 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
               h = img.height * scale;
             const transition = p.transition_type ?? "cut";
             const transitionMs = i === 0 || transition === "cut" ? 0 : Math.max(0, p.transition_duration_ms ?? 280);
-            const transitionProgress = transitionMs ? Math.min(1, elapsed / transitionMs) : 1;
+            const transitionProgress = transitionMs ? easeProgress(Math.min(1, elapsed / transitionMs), p.transition_easing ?? "ease-in-out") : 1;
             ctx.fillStyle = transition === "fade-black" ? "#050505" : transition === "fade-white" ? "#fffdf7" : background;
             ctx.fillRect(0, 0, 1920, 1080);
             ctx.save();
@@ -353,15 +374,16 @@ function SceneStage({ page, playing }: { page: Page; playing: boolean }) {
       </div>
     );
   return (
-    <div className={`video-stage ${TRANSITION_CLASS[page.transition_type ?? "cut"] ?? "transition-cut"}`} style={{ ["--transition-duration" as string]: `${page.transition_duration_ms ?? 280}ms` }}>
+    <div className={`video-stage ${TRANSITION_CLASS[page.transition_type ?? "cut"] ?? "transition-cut"}`} style={{ ["--transition-duration" as string]: `${page.transition_duration_ms ?? 280}ms`, ["--transition-easing" as string]: CSS_EASING[page.transition_easing ?? "ease-in-out"] ?? CSS_EASING["ease-in-out"] }}>
       <img
-        key={`${page.id}:${playing}:${page.camera_motion}:${page.shot_type}:${page.transition_type ?? "cut"}:${page.transition_duration_ms ?? 280}`}
+        key={`${page.id}:${playing}:${page.camera_motion}:${page.shot_type}:${page.transition_type ?? "cut"}:${page.transition_duration_ms ?? 280}:${page.transition_easing ?? "ease-in-out"}`}
         src={image}
         alt={`Scene ${page.page_number}`}
         className={`${playing ? (MOTION_CLASS[page.camera_motion] ?? "") : ""} ${playing ? (TRANSITION_CLASS[page.transition_type ?? "cut"] ?? "") : ""}`}
         style={{
           ["--shot-scale" as string]: SHOT_SCALE[page.shot_type] ?? 1,
-          ["--scene-duration" as string]: `${page.duration_seconds}s`,
+          ["--scene-duration" as string]: `${pacedDuration(page)}s`,
+          ["--motion-easing" as string]: CSS_EASING[page.transition_easing ?? "ease-in-out"] ?? CSS_EASING["ease-in-out"],
           transform: playing ? undefined : `scale(${SHOT_SCALE[page.shot_type] ?? 1})`,
         }}
       />
@@ -564,9 +586,9 @@ function SceneEditor({ page }: { page: Page }) {
             <Label htmlFor="transition-type">Scene transition</Label>
             <select id="transition-type" className={select} value={transition} onChange={(e) => setTransition(e.target.value)}>
               <option value="cut">Hard cut</option>
-              <option value="dissolve">Dissolve</option>
-              <option value="fade-black">Fade through black</option>
-              <option value="fade-white">Fade through white</option>
+              <option value="dissolve">Soft fade</option>
+              <option value="fade-black">Fade in from black</option>
+              <option value="fade-white">Fade in from white</option>
               <option value="slide-left">Slide left</option>
               <option value="slide-right">Slide right</option>
             </select>
@@ -587,8 +609,8 @@ function SceneEditor({ page }: { page: Page }) {
           </div>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="space-y-2"><Label htmlFor="audio-duck">Music ducking · {duckDb} dB</Label><input id="audio-duck" className="w-full accent-primary" type="range" min={-18} max={0} step={1} value={duckDb} onChange={(e) => setDuckDb(Number(e.target.value))} /><p className="text-xs text-muted-foreground">Reduce music under narration for clean dialogue.</p></div>
-          <label className="flex items-start gap-3 rounded-lg border bg-background/60 p-3 text-sm"><input type="checkbox" className="mt-1 accent-primary" checked={captions} onChange={(e) => setCaptions(e.target.checked)} /><span><span className="flex items-center gap-2 font-medium"><Captions className="h-4 w-4 text-primary" /> Include captions</span><span className="mt-1 block text-xs text-muted-foreground">Keep this scene in the caption and accessibility track.</span></span></label>
+          <div className="space-y-2"><Label htmlFor="audio-duck">Music ducking · {duckDb} dB</Label><input id="audio-duck" className="w-full accent-primary" type="range" min={-18} max={0} step={1} value={duckDb} onChange={(e) => setDuckDb(Number(e.target.value))} /><p className="text-xs text-muted-foreground">Saved with the scene for the future mix pass. Current WebM export does not yet mix a music bed.</p></div>
+          <label className="flex items-start gap-3 rounded-lg border bg-background/60 p-3 text-sm"><input type="checkbox" className="mt-1 accent-primary" checked={captions} onChange={(e) => setCaptions(e.target.checked)} /><span><span className="flex items-center gap-2 font-medium"><Captions className="h-4 w-4 text-primary" /> Include captions</span><span className="mt-1 block text-xs text-muted-foreground">Saved as a production note; caption overlays are not yet rendered in the WebM export.</span></span></label>
         </div>
       </div>
       <div className="space-y-2">

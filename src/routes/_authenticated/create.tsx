@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowRight,
@@ -27,7 +27,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MODEL_CATALOG, CAPABILITY_META, type ModelCapability } from "@/lib/model-catalog";
+import { getStudioProviderStatus } from "@/lib/studio.functions";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import type { Tables } from "@/integrations/supabase/types";
@@ -44,11 +45,11 @@ import printShareThumb from "@/assets/thumbnails/print-share.webp";
 export const Route = createFileRoute("/_authenticated/create")({
   head: () => ({
     meta: [
-      { title: "AI Create — CyliaAI" },
+      { title: "Story Production — CyliaTales" },
       { name: "robots", content: "noindex" },
       {
         name: "description",
-        content: "Create books, audiobooks, avatars, anime scenes and media with one professional AI production layer.",
+        content: "Create illustrated children’s books, read-aloud stories, comics, and animated scenes in one review-first studio.",
       },
     ],
   }),
@@ -70,79 +71,49 @@ type CreationCard = {
 const CREATION_CARDS: CreationCard[] = [
   {
     icon: BookOpenText,
-    eyebrow: "Book Auto AI Quality",
-    title: "Professional ebook studio",
-    body: "Turn a brief into a structured, illustrated ebook with editorial review, continuity controls and a ready-to-share reading experience.",
+    eyebrow: "Storybook",
+    title: "Write & illustrate a book",
+    body: "Shape a child-ready story, keep every page editable, and carry one approved cast and art direction through the whole book.",
     tone: "from-amber-50 to-orange-100/70",
     image: ebookStudioThumb,
-    cta: "Open book writer",
+    cta: "Start a storybook",
     to: "/stories/new",
   },
   {
     icon: AudioLines,
-    eyebrow: "ElevenLabs engine",
-    title: "Audiobook narrator",
-    body: "Create human-like narration, sync it page by page, and keep voice direction, pacing and consent visible throughout production.",
+    eyebrow: "Read aloud",
+    title: "Give the story a voice",
+    body: "Choose a narrator, make page-synced audio, and review the spoken story alongside its illustrations.",
     tone: "from-sky-50 to-indigo-100/70",
     image: audiobookThumb,
     cta: "Open voice studio",
     to: "/voices",
   },
   {
-    icon: ScanFace,
-    eyebrow: "Character identity",
-    title: "Avatar generator",
-    body: "Design a consistent character or presenter, define their visual identity, and hand off the approved look to video and lip-sync.",
+    icon: BookOpenText,
+    eyebrow: "Comic format",
+    title: "Reframe pages as a comic",
+    body: "Build panel-by-panel story beats from the same manuscript, approved characters, and chosen art direction.",
     tone: "from-rose-50 to-fuchsia-100/70",
-    image: avatarThumb,
-    cta: "Open character atelier",
-    to: "/characters",
+    image: ebookStudioThumb,
+    cta: "Open a story to make panels",
+    to: "/stories/new",
   },
   {
-    icon: WandSparkles,
-    eyebrow: "Anime & motion",
-    title: "Anime studio",
-    body: "Direct a visual style, generate scene boards, and move from image-to-video with a clear shot list rather than a black-box prompt.",
-    tone: "from-violet-50 to-purple-100/70",
-    image: animeThumb,
+    icon: Video,
+    eyebrow: "Animated story",
+    title: "Direct scenes into a short film",
+    body: "Turn approved story illustrations into scenes with camera direction, editable timing, and controlled transitions.",
+    tone: "from-blue-50 to-sky-100/70",
+    image: imageToVideoThumb,
     cta: "Open production desk",
     to: "/labs",
   },
   {
-    icon: LibraryBig,
-    eyebrow: "4K / 3D library",
-    title: "Media stock",
-    body: "Organize references, approved art, 4K stills and 3D-ready visual ingredients around the world you are producing.",
-    tone: "from-emerald-50 to-teal-100/70",
-    image: mediaLibraryThumb,
-    cta: "Browse story world",
-    to: "/world",
-  },
-  {
-    icon: Waves,
-    eyebrow: "Performance layer",
-    title: "Lip-sync & performance",
-    body: "Align dialogue, mouth movement and timing for speaking avatars, narrated clips and character-led scenes.",
-    tone: "from-slate-50 to-cyan-100/70",
-    image: lipSyncThumb,
-    cta: "Plan a scene",
-    to: "/labs",
-  },
-  {
-    icon: Video,
-    eyebrow: "Scene delivery",
-    title: "Image to video",
-    body: "Turn approved illustrations into short, directed shots with camera motion, continuity notes and a clear review state.",
-    tone: "from-blue-50 to-sky-100/70",
-    image: imageToVideoThumb,
-    cta: "Open scene direction",
-    to: "/labs",
-  },
-  {
     icon: Orbit,
-    eyebrow: "Shared continuity",
-    title: "World builder",
-    body: "Keep places, props, palettes and character locks connected so every new book or scene belongs to the same world.",
+    eyebrow: "Story continuity",
+    title: "Keep the world consistent",
+    body: "Connect recurring characters, places, props, and visual references so each new page belongs to the same story world.",
     tone: "from-lime-50 to-emerald-100/70",
     image: worldBuilderThumb,
     cta: "Open story world",
@@ -150,26 +121,24 @@ const CREATION_CARDS: CreationCard[] = [
   },
   {
     icon: LibraryBig,
-    eyebrow: "Final delivery",
-    title: "Print & share",
-    body: "Prepare a polished PDF, offline reader or asset bundle from approved story pages, narration and scene outputs.",
+    eyebrow: "Share & print",
+    title: "Deliver a keepsake",
+    body: "Review the finished reading experience, export a shareable book, or prepare a print-ready copy from approved pages.",
     tone: "from-yellow-50 to-amber-100/70",
     image: printShareThumb,
-    cta: "Open delivery desk",
+    cta: "Create a book",
     to: "/stories/new",
   },
 ];
 
-const CAPABILITY_ORDER: ModelCapability[] = ["text", "image", "audio", "video", "avatar", "lip-sync"];
-
 function CreateHub() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [activeCapability, setActiveCapability] = useState<ModelCapability | "all">("all");
-  const [search, setSearch] = useState("");
+  const getProviderStatus = useServerFn(getStudioProviderStatus);
+  const { data: providers } = useQuery({ queryKey: ["story-provider-status"], queryFn: () => getProviderStatus() });
   const [projectTitle, setProjectTitle] = useState("");
   const [projectBrief, setProjectBrief] = useState("");
-  const [projectMode, setProjectMode] = useState<"ebook" | "audiobook" | "avatar" | "anime" | "media" | "video" | "lip_sync">("ebook");
+  const [projectMode, setProjectMode] = useState<"ebook" | "audiobook" | "anime" | "video">("ebook");
   const [savingProject, setSavingProject] = useState(false);
   const { data: projects = [] } = useQuery({
     queryKey: ["creation-projects"],
@@ -195,18 +164,7 @@ function CreateHub() {
       return data ?? [];
     },
   });
-  const filteredModels = useMemo(
-    () =>
-      MODEL_CATALOG.filter((model) => {
-        const matchesCapability = activeCapability === "all" || model.capability === activeCapability;
-        const query = search.trim().toLowerCase();
-        const matchesSearch =
-          !query ||
-          `${model.name} ${model.provider} ${model.note}`.toLowerCase().includes(query);
-        return matchesCapability && matchesSearch;
-      }),
-    [activeCapability, search],
-  );
+
 
   async function createProject() {
     if (!user || projectTitle.trim().length < 2 || projectBrief.trim().length < 3) {
@@ -222,16 +180,16 @@ function CreateHub() {
         creation_mode: projectMode,
         status: "planning",
         safety_status: "pending",
-        selected_models: { text: "GPT-5", image: "GPT Image", audio: "ElevenLabs Multilingual v2", video: "Sora" },
+        selected_models: { text: "Configured text model", image: "Configured image model", audio: "Configured narration provider", video: "Configured motion provider" },
       }).select("id").single();
       if (error) throw error;
       const artifacts = [
-        { artifact_type: "ebook", provider: "CyliaAI editorial pipeline", metadata: { stage: "manuscript-and-layout", order: 1 } },
-        { artifact_type: "ebook_pdf", provider: "CyliaAI delivery", metadata: { stage: "print-and-share", order: 2 } },
+        { artifact_type: "ebook", provider: "CyliaTales story editor", metadata: { stage: "manuscript-and-layout", order: 1 } },
+        { artifact_type: "ebook_pdf", provider: "CyliaTales book export", metadata: { stage: "print-and-share", order: 2 } },
         { artifact_type: "audiobook", provider: "ElevenLabs", metadata: { stage: "narration-master", order: 3, model: "eleven_multilingual_v2" } },
         { artifact_type: "narration_track", provider: "ElevenLabs", metadata: { stage: "page-synced-audio", order: 4 } },
-        { artifact_type: "scene", provider: "Sora", metadata: { stage: "approved-illustration-to-motion", order: 5, characterLockRequired: true } },
-        { artifact_type: "video", provider: "Sora", metadata: { stage: "final-animated-delivery", order: 6 } },
+        { artifact_type: "scene", provider: "CyliaTales scene pipeline", metadata: { stage: "approved-illustration-to-motion", order: 5, characterLockRequired: true } },
+        { artifact_type: "video", provider: "CyliaTales scene pipeline", metadata: { stage: "final-animated-delivery", order: 6 } },
       ];
       const { error: artifactError } = await supabase.from("creation_artifacts").insert(artifacts.map((artifact) => ({ ...artifact, project_id: project.id, user_id: user.id, status: "planned" })));
       if (artifactError) throw artifactError;
@@ -271,9 +229,9 @@ function CreateHub() {
   return (
     <div className="create-hub pb-10">
       <PageHeader
-        eyebrow="CyliaAI / AI Create"
-        title="One creative OS. Every finished format."
-        subtitle="Choose a production lane, keep human review in the loop, and let CyliaAI route the right model for the job—from a premium ebook to a narrated anime scene."
+        eyebrow="CyliaTales / Story production"
+        title="One story, ready to read, hear, and watch."
+        subtitle="Write and illustrate children’s books, shape comic panels, record a read-aloud, and direct story scenes without leaving the same creative studio."
         actions={
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" asChild>
@@ -294,10 +252,10 @@ function CreateHub() {
         <div className="relative z-10 grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <div>
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-              <Orbit className="h-4 w-4" /> The CyliaAI production layer
+              <Orbit className="h-4 w-4" /> The CyliaTales story studio
             </p>
             <h2 className="mt-5 max-w-3xl text-3xl font-semibold leading-tight md:text-5xl">
-              From raw idea to a world your audience can read, hear and see.
+              From a small idea to a story a child can read, hear, and remember.
             </h2>
             <p className="mt-5 max-w-2xl text-sm leading-7 text-primary-foreground/75 md:text-base">
               Every output stays connected to the same brief, cast, visual direction and approval gates. That is how quality compounds instead of fragmenting across tools.
@@ -307,7 +265,7 @@ function CreateHub() {
                 to="/stories/new"
                 className="inline-flex h-10 items-center gap-2 rounded-md bg-accent px-4 text-sm font-semibold text-accent-foreground transition hover:brightness-105"
               >
-                Build a professional ebook <ArrowRight className="h-4 w-4" />
+                Start a picture book <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 to="/voices"
@@ -321,7 +279,7 @@ function CreateHub() {
             {[
               { icon: CheckCircle2, label: "Review-first", detail: "Nothing publishes unseen." },
               { icon: Zap, label: "Model routing", detail: "Best fit for each stage." },
-              { icon: LockShield, label: "Private by default", detail: "Your world stays yours." },
+              { icon: CheckCircle2, label: "Private by default", detail: "Your world stays yours." },
             ].map(({ icon: Icon, label, detail }) => (
               <div key={label} className="rounded-2xl border border-primary-foreground/15 bg-primary-foreground/10 p-4 backdrop-blur-sm">
                 <Icon className="h-5 w-5 text-accent" />
@@ -351,7 +309,7 @@ function CreateHub() {
               <div className="flex flex-1 flex-col p-6">
               <div className="flex items-start justify-between gap-4">
                 <span className="grid h-11 w-11 place-items-center rounded-xl bg-white/75 text-primary shadow-sm"><Icon className="h-5 w-5" /></span>
-                <span className="rounded-full bg-white/65 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/60">Ready</span>
+                <span className="rounded-full bg-white/65 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/60">Story format</span>
               </div>
               <p className="mt-7 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary/75">{eyebrow}</p>
               <h3 className="mt-2 text-xl font-semibold text-foreground">{title}</h3>
@@ -373,18 +331,18 @@ function CreateHub() {
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Persistent production</p>
               <h2 className="mt-2 text-2xl font-semibold">Start a connected project</h2>
-              <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">One brief becomes the source of truth for the ebook, narration, character locks, scenes and delivery artifacts.</p>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">Keep the manuscript, character references, narration, animated scenes, and delivery files connected to one story brief.</p>
             </div>
             <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-semibold text-muted-foreground">{projects.length} recent</span>
           </div>
           <div className="mt-6 grid gap-3 md:grid-cols-2">
             <Input value={projectTitle} onChange={(event) => setProjectTitle(event.target.value)} placeholder="Project title" aria-label="Project title" />
             <select value={projectMode} onChange={(event) => setProjectMode(event.target.value as typeof projectMode)} className="h-10 rounded-md border bg-background px-3 text-sm" aria-label="Project creation mode">
-              <option value="ebook">Professional ebook</option>
+              <option value="ebook">Picture book</option>
               <option value="audiobook">Audiobook</option>
-              <option value="anime">Anime short</option>
+              <option value="anime">Animated story</option>
               <option value="video">Image-to-video</option>
-              <option value="avatar">Avatar presenter</option>
+
             </select>
           </div>
           <Textarea value={projectBrief} onChange={(event) => setProjectBrief(event.target.value)} className="mt-3 min-h-24" placeholder="Describe the story, audience, emotional center and finished format…" aria-label="Project brief" />
@@ -413,23 +371,21 @@ function CreateHub() {
       </section>
 
       <section className="mt-12 rounded-2xl border bg-card p-6 shadow-soft md:p-7" aria-labelledby="model-router-title">
-        <div className="flex flex-wrap items-start justify-between gap-5">
-          <div>
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary"><Sparkles className="h-4 w-4" /> Model router</p>
-            <h2 id="model-router-title" className="mt-2 text-2xl font-semibold">A professional stack, not a provider maze.</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">CyliaAI keeps model choices in a routing layer so your workflow stays stable as providers evolve. The selected model is always visible at the review gate.</p>
-          </div>
-          <div className="rounded-xl bg-secondary px-4 py-3 text-sm"><span className="font-semibold">{MODEL_CATALOG.length} models mapped</span><br /><span className="text-muted-foreground">Across 14 providers</span></div>
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary"><Sparkles className="h-4 w-4" /> Generation connections</p>
+        <h2 id="model-router-title" className="mt-2 text-2xl font-semibold">Only configured providers appear ready.</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">CyliaTales checks server-side credentials without exposing keys in the browser. Availability means a credential is present; a successful generation still depends on provider access, model availability, and account limits.</p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            { label: "Story writing", ready: providers?.text },
+            { label: "Illustration", ready: providers?.image },
+            { label: "Narration", ready: providers?.elevenLabs },
+            { label: "Scene motion", ready: providers?.motion },
+            { label: "Groq text", ready: providers?.groq },
+            { label: "Pollinations text / image", ready: providers?.pollinations },
+            { label: "Cloudflare Workers AI", ready: providers?.cloudflareAI },
+            { label: "Cloudflare orchestration credentials", ready: providers?.cloudflareWorker },
+          ].map((item) => <div key={item.label} className="flex items-center justify-between gap-3 rounded-xl border bg-background/60 p-4"><span className="text-sm font-medium">{item.label}</span><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${item.ready ? "bg-emerald-100 text-emerald-800" : "bg-secondary text-muted-foreground"}`}>{providers ? item.ready ? "Credential found" : "Not configured" : "Checking…"}</span></div>)}
         </div>
-        <div className="mt-6 flex flex-wrap gap-2">
-          <Button size="sm" variant={activeCapability === "all" ? "default" : "outline"} onClick={() => setActiveCapability("all")}>All models</Button>
-          {CAPABILITY_ORDER.map((capability) => <Button key={capability} size="sm" variant={activeCapability === capability ? "default" : "outline"} onClick={() => setActiveCapability(capability)}>{CAPABILITY_META[capability].label}</Button>)}
-        </div>
-        <div className="relative mt-4 max-w-sm"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search models or providers…" className="pl-9" aria-label="Search models" /></div>
-        <div className="mt-5 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-          {filteredModels.map((model) => <div key={`${model.provider}-${model.name}`} className="flex items-center gap-3 rounded-xl border bg-background/60 p-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-secondary text-primary">{iconForCapability(model.capability)}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{model.name}</p><p className="truncate text-xs text-muted-foreground">{model.provider} · {model.note}</p></div><span className="rounded-full border px-2 py-1 text-[10px] font-semibold text-muted-foreground">{model.tier}</span></div>)}
-        </div>
-        {!filteredModels.length && <p className="mt-5 rounded-xl border border-dashed p-5 text-sm text-muted-foreground">No models match that filter. Try a different capability or provider.</p>}
       </section>
 
       <section className="mt-12 grid gap-4 lg:grid-cols-[1fr_0.8fr]">
@@ -442,25 +398,11 @@ function CreateHub() {
         </div>
         <div className="rounded-2xl bg-accent p-6 text-accent-foreground md:p-7">
           <Mic2 className="h-6 w-6" />
-          <h2 className="mt-5 text-2xl font-semibold">ElevenLabs is already part of the core.</h2>
-          <p className="mt-3 text-sm leading-6 text-accent-foreground/75">Voice previews, consented voice cloning and page narration are routed through the secure server-side ElevenLabs integration—not exposed as a decorative badge.</p>
+          <h2 className="mt-5 text-2xl font-semibold">A voice for every page.</h2>
+          <p className="mt-3 text-sm leading-6 text-accent-foreground/75">Page narration uses the server-side voice provider when its credential is configured. Check the connection panel above before starting a narration run.</p>
           <Button className="mt-6" variant="secondary" asChild><Link to="/voices"><Play /> Test a narrator</Link></Button>
         </div>
       </section>
     </div>
   );
-}
-
-function iconForCapability(capability: ModelCapability) {
-  const props = { className: "h-4 w-4" };
-  if (capability === "text") return <BookOpenText {...props} />;
-  if (capability === "image") return <ImagePlus {...props} />;
-  if (capability === "video") return <Video {...props} />;
-  if (capability === "audio") return <FileAudio {...props} />;
-  if (capability === "avatar") return <UserRound {...props} />;
-  return <ScanFace {...props} />;
-}
-
-function LockShield({ className }: { className?: string }) {
-  return <div className={className}><span className="sr-only">Private by default</span><span aria-hidden="true">◈</span></div>;
 }

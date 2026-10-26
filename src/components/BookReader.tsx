@@ -5,6 +5,7 @@ import {
   ArrowRight,
   BookOpen,
   ImagePlus,
+  Languages,
   Pause,
   Play,
   SkipBack,
@@ -68,6 +69,7 @@ export function BookReader({
   const [dims, setDims] = useState({ w: 540, h: 720, compact: false });
   const [contents, setContents] = useState(false);
   const [largeText, setLargeText] = useState(false);
+  const [bilingual, setBilingual] = useState(false);
   const [startPage, setStartPage] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -217,6 +219,17 @@ export function BookReader({
           <Button
             variant="ghost"
             size="icon"
+            title="Toggle bilingual view"
+            aria-label="Toggle bilingual side-by-side view"
+            aria-pressed={bilingual}
+            disabled={!pages.some((page) => page.translation_text)}
+            onClick={() => setBilingual((value) => !value)}
+          >
+            <Languages />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             title="Larger text"
             aria-label="Larger text"
             aria-pressed={largeText}
@@ -335,8 +348,9 @@ export function BookReader({
             </Leaf>,
             <Leaf key={`${p.id}-t`} className="flip-art flip-panorama-right">
               <Art path={p.image_url} alt={`Illustration continuation for page ${p.page_number}`} />
-              <div className="flip-prose flip-story-panel">
-                <p>{p.text}</p>
+              <div className={`flip-prose flip-story-panel ${bilingual && p.translation_text ? "reader-bilingual" : ""}`}>
+                <div><p className="reader-language-label">Original</p><p>{p.text}</p></div>
+                {bilingual && p.translation_text && <div><p className="reader-language-label">{p.translation_language || "Translation"}</p><p lang={p.translation_language || undefined}>{p.translation_text}</p></div>}
               </div>
               <span className="flip-folio">{p.page_number}</span>
             </Leaf>,

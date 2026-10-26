@@ -22,39 +22,72 @@ const SafetyInput = z.object({
 export const getStudioProviderStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => ({
-    text: Boolean(process.env["AI_API_KEY"] ?? process.env["OPENAI_API_KEY"]),
-    image: Boolean(process.env["AI_API_KEY"] ?? process.env["OPENAI_API_KEY"]),
-    elevenLabs: Boolean(process.env["ELEVENLABS_API_KEY"]),
-    motion: Boolean(process.env["AI_API_KEY"] ?? process.env["OPENAI_API_KEY"]),
-    baseUrlConfigured: Boolean(process.env["AI_API_BASE"] ?? process.env["OPENAI_API_BASE"] ?? process.env["OPENAI_BASE_URL"]),
+    text: Boolean(
+      process.env["AI_API_KEY"]?.trim() || process.env["OPENAI_API_KEY"]?.trim() ||
+      process.env["GROQ_API_KEY"]?.trim() ||
+      process.env["POLLINATIONS_API_KEY"]?.trim() || process.env["POLLINATIONS_KEY"]?.trim() ||
+      ((process.env["CLOUDFLARE_AI_ACCOUNT_ID"]?.trim() || process.env["CLOUDFLARE_ACCOUNT_ID"]?.trim()) &&
+        (process.env["CLOUDFLARE_AI_API_TOKEN"]?.trim() || process.env["CLOUDFLARE_API_TOKEN"]?.trim() || process.env["CLOUDFLARE_API_KEY"]?.trim())),
+    ),
+    image: Boolean(
+      process.env["AI_API_KEY"]?.trim() || process.env["OPENAI_API_KEY"]?.trim() ||
+      process.env["POLLINATIONS_API_KEY"]?.trim() || process.env["POLLINATIONS_KEY"]?.trim(),
+    ),
+    elevenLabs: Boolean(process.env["ELEVENLABS_API_KEY"]?.trim()),
+    motion: Boolean(process.env["AI_API_KEY"]?.trim() || process.env["OPENAI_API_KEY"]?.trim()),
+    baseUrlConfigured: Boolean(
+      process.env["AI_API_BASE"]?.trim() || process.env["OPENAI_API_BASE"]?.trim() ||
+      process.env["OPENAI_BASE_URL"]?.trim() || process.env["AI_API_KEY"]?.trim() || process.env["OPENAI_API_KEY"]?.trim(),
+    ),
+    groq: Boolean(process.env["GROQ_API_KEY"]?.trim()),
+    pollinations: Boolean(process.env["POLLINATIONS_API_KEY"]?.trim() || process.env["POLLINATIONS_KEY"]?.trim()),
+    cloudflareAI: Boolean(
+      (process.env["CLOUDFLARE_AI_ACCOUNT_ID"]?.trim() || process.env["CLOUDFLARE_ACCOUNT_ID"]?.trim()) &&
+      (process.env["CLOUDFLARE_AI_API_TOKEN"]?.trim() || process.env["CLOUDFLARE_API_TOKEN"]?.trim() || process.env["CLOUDFLARE_API_KEY"]?.trim()),
+    ),
+    cloudflareWorker: Boolean(process.env["CLOUDFLARE_STORY_WORKER_URL"]?.trim() && process.env["CLOUDFLARE_STORY_WORKER_TOKEN"]?.trim()),
   }));
 
 export const checkStorySafety = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => SafetyInput.parse(d))
   .handler(async ({ data }) => {
-    const { requireKey, GATEWAY, gatewayError } = await import("./ai-gateway.server");
-    const response = await fetch(`${GATEWAY}/moderations`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${requireKey()}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "omni-moderation-latest",
-        input: `Children's story request for age band ${data.ageRange}:\n${data.content}`,
-      }),
+    const { requireKey, requireTextKey, textModel, GATEWAY } = await import("./ai-gateway.server");
+    let primaryKey: string | undefined;
+    try { primaryKey = requireKey(); } catch { /* Text-only provider fallback below. */ }
+    if (primaryKey) {
+      const response = await fetch(`${GATEWAY}/moderations`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${primaryKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "omni-moderation-latest",
+          input: `Children's story request for age band ${data.ageRange}:\n${data.content}`,
+        }),
+      });
+      if (response.ok) {
+        const result = (await response.json()) as {
+          results?: Array<{ flagged?: boolean; categories?: Record<string, boolean> }>;
+        };
+        const first = result.results?.[0];
+        const flagged = Boolean(first?.flagged);
+        return {
+          status: flagged ? ("blocked" as const) : ("passed" as const),
+          flaggedCategories: flagged
+            ? Object.entries(first?.categories ?? {}).filter(([, value]) => value).map(([key]) => key)
+            : [],
+        };
+      }
+    }
+    const { streamText, Output } = await import("ai");
+    const review = await streamText({
+      model: textModel(requireTextKey()),
+      output: Output.object({ schema: z.object({ safe: z.boolean(), flaggedCategories: z.array(z.string()).max(8) }) }),
+      prompt: `Act as a conservative children's-story content screener for ages ${data.ageRange}. Review the request below for sexual content, graphic violence, self-harm, hate, dangerous instructions, exploitation, or adult themes. Be cautious but do not flag ordinary fantasy peril. Return safe=true only when suitable for the specified age group; if unsafe, name concise categories.\n\nRequest:\n${data.content}`,
     });
-    if (!response.ok) throw await gatewayError(response);
-    const result = (await response.json()) as {
-      results?: Array<{ flagged?: boolean; categories?: Record<string, boolean> }>;
-    };
-    const first = result.results?.[0];
-    const flagged = Boolean(first?.flagged);
+    const result = await review.output;
     return {
-      status: flagged ? ("blocked" as const) : ("passed" as const),
-      flaggedCategories: flagged
-        ? Object.entries(first?.categories ?? {})
-            .filter(([, value]) => value)
-            .map(([key]) => key)
-        : [],
+      status: result.safe ? ("passed" as const) : ("blocked" as const),
+      flaggedCategories: result.safe ? [] : result.flaggedCategories,
     };
   });
 
@@ -62,13 +95,13 @@ export const generateStory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => StoryInput.parse(d))
   .handler(async ({ data, context }) => {
-    const { requireKey, textModel } = await import("./ai-gateway.server");
+    const { requireTextKey, textModel, textProviderStatus } = await import("./ai-gateway.server");
     const { streamText, Output, NoObjectGeneratedError } = await import("ai");
-    const key = requireKey();
+    const key = requireTextKey();
     const jobId = await createStoryJob(context.supabase, {
       userId: context.userId,
       jobType: "story_plan",
-      provider: cloudflareWorkerUrl() ? "cloudflare-worker" : "local-gateway",
+      provider: textProviderStatus(),
       requestPayload: {
         idea: data.idea,
         ageRange: data.ageRange,
@@ -102,14 +135,15 @@ Keep it safe, positive and age-appropriate with a satisfying ending. Title under
         model: textModel(key),
         output: Output.object({ schema }),
         prompt,
-        providerOptions: {
-          openai: {
-            forceReasoning: true,
-            reasoningEffort: "low",
-            store: false,
-            include: ["reasoning.encrypted_content"],
+        ...(textProviderStatus() === "openai" ? {
+          providerOptions: {
+            openai: {
+              forceReasoning: true,
+              reasoningEffort: "low",
+              store: false,
+                          },
           },
-        },
+        } : {}),
       });
       const out = await result.output;
       const pages = out.pages.slice(0, data.pages);
@@ -144,8 +178,10 @@ export const generateImage = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { requireKey, GATEWAY, gatewayError } = await import("./ai-gateway.server");
-    const key = requireKey();
+    const { requireImageKey, imageGateway, imageModelName, gatewayError } = await import("./ai-gateway.server");
+    const key = requireImageKey();
+    const imageApi = imageGateway();
+    const model = imageModelName();
     const refs = [...new Set(data.referencePaths ?? [])].filter((p) =>
       p.startsWith(`${context.userId}/`),
     );
@@ -154,7 +190,7 @@ export const generateImage = createServerFn({ method: "POST" })
     let res: Response;
     if (refs.length) {
       const form = new FormData();
-      form.append("model", "openai/gpt-image-2.5-sunburst");
+      form.append("model", model);
       form.append(
         "prompt",
         `Reference images 1-${refs.length} show the established characters. Keep each character's face, hairstyle, body proportions, outfit and color palette exactly consistent with the references, redrawn in the requested art style. Do not copy the references' backgrounds or poses. Scene: ${base}`,
@@ -173,17 +209,17 @@ export const generateImage = createServerFn({ method: "POST" })
           ),
         );
       }
-      res = await fetch(`${GATEWAY}/v1/images/edits`, {
+      res = await fetch(`${imageApi}/images/edits`, {
         method: "POST",
         headers: { Authorization: `Bearer ${key}` },
         body: form,
       });
     } else {
-      res = await fetch(`${GATEWAY}/v1/images/generations`, {
+      res = await fetch(`${imageApi}/images/generations`, {
         method: "POST",
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "openai/gpt-image-2.5-sunburst",
+          model,
           prompt: base,
           size,
           quality: "high",
@@ -224,7 +260,7 @@ export const startSceneMotion = createServerFn({ method: "POST" })
     const imageB64 = Buffer.from(await blob.arrayBuffer()).toString("base64");
     const duration = Math.min(10, Math.max(3, page.duration_seconds));
     const prompt = `Animate the illustration <FIRST_FRAME> as one shot from a children's picture book. ${page.shot_type} framing. ${CAMERA_PROMPTS[page.camera_motion] ?? page.camera_motion}. ${page.motion_prompt ? `Action: ${page.motion_prompt}.` : `Subtle, natural life: characters breathe and move gently, small environmental motion such as leaves, light or water.`} Keep every character's face, proportions, outfit, colors and the illustrated art style unchanged. In a single continuous shot, no scene cuts. Ends on a calm held frame. Audio: soft gentle ambient sound matching the scene. No music. No dialogue. No captions, no on-screen text.`;
-    const res = await fetch(`${GATEWAY}/v1/videos`, {
+    const res = await fetch(`${GATEWAY}/videos`, {
       method: "POST",
       headers: { Authorization: `Bearer ${requireKey()}`, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -265,7 +301,7 @@ export const checkSceneMotion = createServerFn({ method: "POST" })
     if (page.motion_status !== "processing" || !page.motion_job_id)
       return { status: page.motion_status };
     const key = requireKey();
-    const res = await fetch(`${GATEWAY}/v1/videos/${page.motion_job_id}`, {
+    const res = await fetch(`${GATEWAY}/videos/${page.motion_job_id}`, {
       headers: { Authorization: `Bearer ${key}` },
     });
     if (!res.ok) throw await gatewayError(res);
@@ -283,7 +319,7 @@ export const checkSceneMotion = createServerFn({ method: "POST" })
       return { status: "failed", error: message };
     }
     if (job.status !== "completed") return { status: "processing", progress: job.progress ?? 0 };
-    const content = await fetch(`${GATEWAY}/v1/videos/${page.motion_job_id}/content`, {
+    const content = await fetch(`${GATEWAY}/videos/${page.motion_job_id}/content`, {
       headers: { Authorization: `Bearer ${key}` },
     });
     if (!content.ok) throw await gatewayError(content);
@@ -307,7 +343,7 @@ export const narrate = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { requireKey, GATEWAY, gatewayError } = await import("./ai-gateway.server");
     const key = requireKey();
-    const res = await fetch(`${GATEWAY}/v1/audio/speech`, {
+    const res = await fetch(`${GATEWAY}/audio/speech`, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -470,7 +506,7 @@ export const generateLearningActivities = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => ActivityInput.parse(d))
   .handler(async ({ data }) => {
-    const { requireKey, textModel } = await import("./ai-gateway.server");
+    const { requireTextKey, textModel } = await import("./ai-gateway.server");
     const { streamText, Output, NoObjectGeneratedError } = await import("ai");
     const schema = z.object({
       summary: z.string(),
@@ -508,7 +544,7 @@ ${data.story}
 """`;
     try {
       const result = streamText({
-        model: textModel(requireKey()),
+        model: textModel(requireTextKey()),
         output: Output.object({ schema }),
         prompt,
         providerOptions: {
@@ -517,8 +553,7 @@ ${data.story}
             reasoningEffort: "low",
             reasoningSummary: "auto",
             store: false,
-            include: ["reasoning.encrypted_content"],
-          },
+                      },
         },
       });
       return await result.output;
