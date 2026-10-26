@@ -13,6 +13,8 @@ import {
   RotateCcw,
   CheckCircle2,
   AlertCircle,
+  Captions,
+  SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -39,6 +41,14 @@ const SHOT_SCALE: Record<string, number> = {
   Medium: 1.08,
   "Close-up": 1.22,
   Detail: 1.38,
+};
+const TRANSITION_CLASS: Record<string, string> = {
+  cut: "transition-cut",
+  dissolve: "transition-dissolve",
+  "fade-black": "transition-fade-black",
+  "fade-white": "transition-fade-white",
+  "slide-left": "transition-slide-left",
+  "slide-right": "transition-slide-right",
 };
 
 export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
@@ -159,7 +169,8 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
         const base = Math.min(1920 / img.width, 1080 / img.height) * (SHOT_SCALE[p.shot_type] ?? 1);
         await new Promise<void>((resolve) => {
           const frame = () => {
-            const t = Math.min(1, (performance.now() - start) / ms);
+            const elapsed = performance.now() - start;
+            const t = Math.min(1, elapsed / ms);
             const ease = t * t * (3 - 2 * t);
             let scale = base,
               dx = 0;
@@ -174,9 +185,16 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
             }
             const w = img.width * scale,
               h = img.height * scale;
-            ctx.fillStyle = background;
+            const transition = p.transition_type ?? "cut";
+            const transitionMs = i === 0 || transition === "cut" ? 0 : Math.max(0, p.transition_duration_ms ?? 280);
+            const transitionProgress = transitionMs ? Math.min(1, elapsed / transitionMs) : 1;
+            ctx.fillStyle = transition === "fade-black" ? "#050505" : transition === "fade-white" ? "#fffdf7" : background;
             ctx.fillRect(0, 0, 1920, 1080);
-            ctx.drawImage(img, (1920 - w) / 2 + dx, (1080 - h) / 2, w, h);
+            ctx.save();
+            ctx.globalAlpha = transition === "dissolve" || transition === "fade-black" || transition === "fade-white" ? transitionProgress : 1;
+            const transitionX = transition === "slide-left" ? (1 - transitionProgress) * 1920 : transition === "slide-right" ? -(1 - transitionProgress) * 1920 : 0;
+            ctx.drawImage(img, (1920 - w) / 2 + dx + transitionX, (1080 - h) / 2, w, h);
+            ctx.restore();
             if (t < 1) requestAnimationFrame(frame);
             else resolve();
           };
@@ -235,6 +253,8 @@ export function StoryVideo({ pages, title }: { pages: Page[]; title: string }) {
             <span className="rounded border px-2 py-1">{page.shot_type}</span>
             <span className="rounded border px-2 py-1">{page.camera_motion}</span>
             <span className="rounded border px-2 py-1">{page.duration_seconds}s</span>
+            <span className="rounded border px-2 py-1">{page.transition_type ?? "cut"} · {page.transition_duration_ms ?? 280}ms</span>
+            <span className="rounded border px-2 py-1">{page.pacing ?? "cinematic"} pacing</span>
             {page.motion_url && (
               <span className="rounded border border-primary px-2 py-1 text-primary">
                 Motion clip
@@ -333,12 +353,12 @@ function SceneStage({ page, playing }: { page: Page; playing: boolean }) {
       </div>
     );
   return (
-    <div className="video-stage">
+    <div className={`video-stage ${TRANSITION_CLASS[page.transition_type ?? "cut"] ?? "transition-cut"}`} style={{ ["--transition-duration" as string]: `${page.transition_duration_ms ?? 280}ms` }}>
       <img
-        key={`${page.id}:${playing}:${page.camera_motion}:${page.shot_type}`}
+        key={`${page.id}:${playing}:${page.camera_motion}:${page.shot_type}:${page.transition_type ?? "cut"}:${page.transition_duration_ms ?? 280}`}
         src={image}
         alt={`Scene ${page.page_number}`}
-        className={playing ? (MOTION_CLASS[page.camera_motion] ?? "") : ""}
+        className={`${playing ? (MOTION_CLASS[page.camera_motion] ?? "") : ""} ${playing ? (TRANSITION_CLASS[page.transition_type ?? "cut"] ?? "") : ""}`}
         style={{
           ["--shot-scale" as string]: SHOT_SCALE[page.shot_type] ?? 1,
           ["--scene-duration" as string]: `${page.duration_seconds}s`,
@@ -385,6 +405,12 @@ function SceneEditor({ page }: { page: Page }) {
   const [shot, setShot] = useState(page.shot_type);
   const [motion, setMotion] = useState(page.camera_motion);
   const [action, setAction] = useState(page.motion_prompt ?? "");
+  const [transition, setTransition] = useState(page.transition_type ?? "cut");
+  const [transitionDuration, setTransitionDuration] = useState(page.transition_duration_ms ?? 280);
+  const [easing, setEasing] = useState(page.transition_easing ?? "ease-in-out");
+  const [pacing, setPacing] = useState(page.pacing ?? "cinematic");
+  const [duckDb, setDuckDb] = useState(page.audio_duck_db ?? -5);
+  const [captions, setCaptions] = useState(page.captions_enabled ?? true);
   const [saving, setSaving] = useState(false);
   const [starting, setStarting] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -432,6 +458,12 @@ function SceneEditor({ page }: { page: Page }) {
         shot_type: shot,
         camera_motion: motion,
         motion_prompt: action || null,
+        transition_type: transition,
+        transition_duration_ms: transition === "cut" ? 0 : transitionDuration,
+        transition_easing: easing,
+        pacing,
+        audio_duck_db: duckDb,
+        captions_enabled: captions,
         ...(text !== page.text ? { audio_url: null } : {}),
       })
       .eq("id", page.id);
@@ -515,6 +547,49 @@ function SceneEditor({ page }: { page: Page }) {
           value={duration}
           onChange={(e) => setDuration(Number(e.target.value))}
         />
+      </div>
+      <div className="rounded-xl border bg-secondary/30 p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm font-semibold"><SlidersHorizontal className="h-4 w-4 text-primary" /> Timing & transition</div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="scene-pacing">Pacing preset</Label>
+            <select id="scene-pacing" className={select} value={pacing} onChange={(e) => setPacing(e.target.value)}>
+              <option value="slow">Slow and reflective</option>
+              <option value="cinematic">Cinematic</option>
+              <option value="brisk">Brisk and playful</option>
+              <option value="dialogue">Dialogue-led</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="transition-type">Scene transition</Label>
+            <select id="transition-type" className={select} value={transition} onChange={(e) => setTransition(e.target.value)}>
+              <option value="cut">Hard cut</option>
+              <option value="dissolve">Dissolve</option>
+              <option value="fade-black">Fade through black</option>
+              <option value="fade-white">Fade through white</option>
+              <option value="slide-left">Slide left</option>
+              <option value="slide-right">Slide right</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="transition-duration">Transition length · {transition === "cut" ? 0 : transitionDuration}ms</Label>
+            <input id="transition-duration" className="w-full accent-primary" type="range" min={0} max={1200} step={40} value={transitionDuration} disabled={transition === "cut"} onChange={(e) => setTransitionDuration(Number(e.target.value))} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="transition-easing">Motion curve</Label>
+            <select id="transition-easing" className={select} value={easing} onChange={(e) => setEasing(e.target.value)}>
+              <option value="linear">Linear</option>
+              <option value="ease-in">Ease in</option>
+              <option value="ease-out">Ease out</option>
+              <option value="ease-in-out">Ease in-out</option>
+              <option value="spring">Spring</option>
+            </select>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="space-y-2"><Label htmlFor="audio-duck">Music ducking · {duckDb} dB</Label><input id="audio-duck" className="w-full accent-primary" type="range" min={-18} max={0} step={1} value={duckDb} onChange={(e) => setDuckDb(Number(e.target.value))} /><p className="text-xs text-muted-foreground">Reduce music under narration for clean dialogue.</p></div>
+          <label className="flex items-start gap-3 rounded-lg border bg-background/60 p-3 text-sm"><input type="checkbox" className="mt-1 accent-primary" checked={captions} onChange={(e) => setCaptions(e.target.checked)} /><span><span className="flex items-center gap-2 font-medium"><Captions className="h-4 w-4 text-primary" /> Include captions</span><span className="mt-1 block text-xs text-muted-foreground">Keep this scene in the caption and accessibility track.</span></span></label>
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="scene-action">Character action</Label>

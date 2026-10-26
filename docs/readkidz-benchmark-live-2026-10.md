@@ -1,28 +1,37 @@
-# ReadKidz live benchmark — October 2026
+# ReadKidz benchmark — verified October 2026
 
-Sources reviewed:
+Research was conducted against official ReadKidz pages and linked official surfaces. The benchmark is used as product evidence, not as a claim that CyliaAI should copy ReadKidz's branding or implementation.
+
+## Verified product patterns
+
+ReadKidz presents a staged picture-book workflow: idea, plot/concept storyboard, character definition, page generation, then review and refinement. The same story assets extend into animation and music-video formats. The product supports age bands, multiple languages, editing, per-page art replacement, PDF export, private sharing, read-aloud, and physical-book printing.
+
+Its animation workflow is scene-based rather than a traditional keyframe timeline. It supports a one- or two-sentence idea or a script, visual-style selection, character casting, scene-by-scene generation, narration, music, editable narration lines, semantic camera directions such as slow push-in and pan, scene cuts, single-shot retakes, final timeline assembly, captions, sound effects, and downloadable films. Public documentation confirms film-length choices around 1–3 minutes but does not document numeric per-shot duration, frame-rate, codec, bitrate, or a transition library.
+
+The public library is an important discovery loop. It exposes categories, age bands, page counts, full online reading, caregiver guides, open questions, and reusable starting points based on an existing story theme. The parent/teacher surfaces emphasize concrete situations such as starting school, big feelings, friendship, bedtime, and social stories for one child and one situation.
+
+The safety surface claims automated pre-generation checks, blocked or flagged content, age-band tuning, human review before public library publication, and adult-owned accounts. Its privacy policy states that children use the service under adult supervision and that parents can request access or deletion. These statements are useful benchmark signals, but CyliaAI should make its own controls and commitments explicit rather than copying vague assurances.
+
+## CyliaAI implementation priorities
+
+1. Add a review-first storyboard and per-scene retakes.
+2. Add per-scene duration, pacing, camera preset, transition type, transition duration, and easing controls.
+3. Preserve approved neighbors when regenerating one shot.
+4. Add finishing controls for captions, narration, music, SFX, mix ducking, and export settings.
+5. Add public/private library surfaces with age and page metadata, caregiver guides, questions, and “start from this idea” actions.
+6. Make parent/teacher safety, consent, retention, deletion and sharing controls explicit.
+7. Keep ebook, audiobook, character-lock, avatar, image-to-video, lip-sync, media-stock and animated-scene assets connected by persistent project artifacts.
+
+## Official sources
 
 - https://www.readkidz.com/
 - https://www.readkidz.com/ai-animation-maker
+- https://www.readkidz.com/create/animation
+- https://www.readkidz.com/tutorials/animation
+- https://www.readkidz.com/how-it-works
+- https://www.readkidz.com/storybooks
 - https://www.readkidz.com/safe
+- https://www.readkidz.com/privacy
 - https://www.readkidz.com/blog
-
-## Product patterns worth matching
-
-ReadKidz presents two clear creation modes at the top of the funnel: picture book and animation. Both begin from one sentence or a memory, offer age bands and story types, and make the first preview free. The core promise is a complete artifact, not a generic AI chat: story, characters, page art, layout, narration, animation, export and print.
-
-The creation loop is explicit: begin with one idea, shape the story, meet the characters, then bring every page together. Character consistency is treated as a primary differentiator. The animation workflow similarly pins a character sheet before rendering scenes, then adds narration and music, supports multiple aspect ratios and allows download/share.
-
-ReadKidz uses a strong review and trust model. It describes content filtering before generation, image filtering before a child sees an illustration, age-band adaptation, human review for public books, privacy, ownership and failed-generation credit refunds. The product also speaks separately to parents, teachers, and publishers/creators.
-
-The content ecosystem is part of the product: a public storybook library, real read-in-place examples, story ideas, practical guides, print/PDF delivery and shareable books. The experience is therefore a connected loop from idea to artifact to library to remix, not just a generator screen.
-
-## CyliaTales implementation implications
-
-1. Keep creation modes explicit: professional ebook, audiobook, avatar, anime/motion, media, and lip-sync.
-2. Make the output artifact and next review gate visible at every stage.
-3. Keep Story World and character locks as shared infrastructure across books, audio and video.
-4. Add real content-safety and public-review states before publishing or sharing.
-5. Treat print/PDF, offline reader, narrated reading and video as first-class delivery surfaces.
-6. Make parent, teacher, creator and publisher use cases visible without fragmenting the core workflow.
-7. Show provider/model routing as a transparent production decision, not as decorative model badges.
+- https://www.readkidz.com/create/picture-book
+- https://www.readkidz.com/make/social-story-generator

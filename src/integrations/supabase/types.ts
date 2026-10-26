@@ -229,8 +229,11 @@ export type Database = {
         Row: {
           audio_url: string | null;
           camera_motion: string;
+          captions_enabled: boolean;
           created_at: string;
           duration_seconds: number;
+          audio_duck_db: number;
+          beat_markers: Json;
           id: string;
           image_prompt: string | null;
           image_url: string | null;
@@ -240,17 +243,24 @@ export type Database = {
           motion_status: string;
           motion_url: string | null;
           page_number: number;
+          pacing: string;
           shot_type: string;
           story_id: string;
           text: string;
+          transition_duration_ms: number;
+          transition_easing: string;
+          transition_type: string;
           updated_at: string;
           user_id: string;
         };
         Insert: {
           audio_url?: string | null;
           camera_motion?: string;
+          captions_enabled?: boolean;
           created_at?: string;
           duration_seconds?: number;
+          audio_duck_db?: number;
+          beat_markers?: Json;
           id?: string;
           image_prompt?: string | null;
           image_url?: string | null;
@@ -260,17 +270,24 @@ export type Database = {
           motion_status?: string;
           motion_url?: string | null;
           page_number: number;
+          pacing?: string;
           shot_type?: string;
           story_id: string;
           text?: string;
+          transition_duration_ms?: number;
+          transition_easing?: string;
+          transition_type?: string;
           updated_at?: string;
           user_id?: string;
         };
         Update: {
           audio_url?: string | null;
           camera_motion?: string;
+          captions_enabled?: boolean;
           created_at?: string;
           duration_seconds?: number;
+          audio_duck_db?: number;
+          beat_markers?: Json;
           id?: string;
           image_prompt?: string | null;
           image_url?: string | null;
@@ -280,9 +297,13 @@ export type Database = {
           motion_status?: string;
           motion_url?: string | null;
           page_number?: number;
+          pacing?: string;
           shot_type?: string;
           story_id?: string;
           text?: string;
+          transition_duration_ms?: number;
+          transition_easing?: string;
+          transition_type?: string;
           updated_at?: string;
           user_id?: string;
         };

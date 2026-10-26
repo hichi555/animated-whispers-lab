@@ -649,6 +649,37 @@
 .motion-pan-right {
   animation: scene-pan-right var(--scene-duration, 6s) ease-in-out forwards;
 }
+.transition-dissolve,
+.transition-fade-black,
+.transition-fade-white,
+.transition-slide-left,
+.transition-slide-right {
+  animation-duration: var(--transition-duration, 280ms);
+  animation-timing-function: ease-in-out;
+}
+.transition-dissolve img,
+.transition-fade-black img,
+.transition-fade-white img {
+  animation: transition-in var(--transition-duration, 280ms) ease-in-out both;
+}
+.transition-slide-left img {
+  animation: transition-slide-left var(--transition-duration, 280ms) ease-out both;
+}
+.transition-slide-right img {
+  animation: transition-slide-right var(--transition-duration, 280ms) ease-out both;
+}
+@keyframes transition-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes transition-slide-left {
+  from { opacity: 0.2; transform: translateX(12%) scale(var(--shot-scale, 1)); }
+  to { opacity: 1; transform: translateX(0) scale(var(--shot-scale, 1)); }
+}
+@keyframes transition-slide-right {
+  from { opacity: 0.2; transform: translateX(-12%) scale(var(--shot-scale, 1)); }
+  to { opacity: 1; transform: translateX(0) scale(var(--shot-scale, 1)); }
+}
 @keyframes scene-push {
   from {
     transform: scale(var(--shot-scale, 1));
@@ -677,6 +708,16 @@
   .motion-push,
   .motion-pan-left,
   .motion-pan-right {
+    animation: none;
+  }
+  .transition-dissolve,
+  .transition-fade-black,
+  .transition-fade-white,
+  .transition-slide-left,
+  .transition-slide-right,
+  .transition-dissolve img,
+  .transition-fade-black img,
+  .transition-fade-white img {
     animation: none;
   }
 }
