@@ -23,11 +23,11 @@ npm ci
 cp .env.example .env
 ```
 
-Open `.env` and set the public Supabase publishable/anon key for project `rrtgokjzhotddlbjaqep`. For a server running on your own computer, set the OAuth origin to the same local URL:
+Open `.env` and set the public Supabase publishable/anon key for the connected project `nfefwcmklegldwfjrtku`. The copied template also documents the server-side AI gateway, ElevenLabs, and optional worker variables. For a server running on your own computer, set the OAuth origin to the same local URL:
 
 ```env
-VITE_SUPABASE_URL="https://rrtgokjzhotddlbjaqep.supabase.co"
-VITE_SUPABASE_PROJECT_ID="rrtgokjzhotddlbjaqep"
+VITE_SUPABASE_URL="https://nfefwcmklegldwfjrtku.supabase.co"
+VITE_SUPABASE_PROJECT_ID="nfefwcmklegldwfjrtku"
 VITE_SUPABASE_PUBLISHABLE_KEY="your-public-anon-or-publishable-key"
 VITE_APP_URL="http://localhost:8080"
 ```
@@ -55,4 +55,3 @@ If you are using a deployed HTTPS domain instead, set `VITE_APP_URL` to that exa
 npm run typecheck
 npm run build
 ```
-
