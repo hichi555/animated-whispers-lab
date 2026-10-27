@@ -31,6 +31,8 @@ export const getStudioProviderStatus = createServerFn({ method: "GET" })
     ),
     image: Boolean(
       process.env["AI_API_KEY"]?.trim() || process.env["OPENAI_API_KEY"]?.trim() ||
+      ((process.env["CLOUDFLARE_AI_ACCOUNT_ID"]?.trim() || process.env["CLOUDFLARE_ACCOUNT_ID"]?.trim()) &&
+        (process.env["CLOUDFLARE_AI_API_TOKEN"]?.trim() || process.env["CLOUDFLARE_API_TOKEN"]?.trim() || process.env["CLOUDFLARE_API_KEY"]?.trim())) ||
       process.env["POLLINATIONS_API_KEY"]?.trim() || process.env["POLLINATIONS_KEY"]?.trim(),
     ),
     elevenLabs: Boolean(process.env["ELEVENLABS_API_KEY"]?.trim()),
@@ -52,7 +54,7 @@ export const checkStorySafety = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => SafetyInput.parse(d))
   .handler(async ({ data }) => {
-    const { requireKey, requireTextKey, textModel, GATEWAY } = await import("./ai-gateway.server");
+    const { cloudflareStructuredChat, requireKey, requireTextKey, textModel, textProviderStatus, GATEWAY } = await import("./ai-gateway.server");
     let primaryKey: string | undefined;
     try { primaryKey = requireKey(); } catch { /* Text-only provider fallback below. */ }
     if (primaryKey) {
@@ -78,13 +80,30 @@ export const checkStorySafety = createServerFn({ method: "POST" })
         };
       }
     }
-    const { streamText, Output } = await import("ai");
-    const review = await streamText({
-      model: textModel(requireTextKey()),
-      output: Output.object({ schema: z.object({ safe: z.boolean(), flaggedCategories: z.array(z.string()).max(8) }) }),
-      prompt: `Act as a conservative children's-story content screener for ages ${data.ageRange}. Review the request below for sexual content, graphic violence, self-harm, hate, dangerous instructions, exploitation, or adult themes. Be cautious but do not flag ordinary fantasy peril. Return safe=true only when suitable for the specified age group; if unsafe, name concise categories.\n\nRequest:\n${data.content}`,
-    });
-    const result = await review.output;
+    const safetySchema = z.object({ safe: z.boolean(), flaggedCategories: z.array(z.string()).max(8) });
+    const prompt = `Act as a conservative children's-story content screener for ages ${data.ageRange}. Review the request below for sexual content, graphic violence, self-harm, hate, dangerous instructions, exploitation, or adult themes. Be cautious but do not flag ordinary fantasy peril. Return safe=true only when suitable for the specified age group; if unsafe, name concise categories.\n\nRequest:\n${data.content}`;
+    let result: z.infer<typeof safetySchema>;
+    if (textProviderStatus() === "cloudflare") {
+      result = safetySchema.parse(await cloudflareStructuredChat({
+        prompt,
+        schemaName: "story_safety_review",
+        maxTokens: 300,
+        responseSchema: {
+          type: "object",
+          properties: { safe: { type: "boolean" }, flaggedCategories: { type: "array", items: { type: "string" } } },
+          required: ["safe", "flaggedCategories"],
+          additionalProperties: false,
+        },
+      }));
+    } else {
+      const { streamText, Output } = await import("ai");
+      const review = await streamText({
+        model: textModel(requireTextKey()),
+        output: Output.object({ schema: safetySchema }),
+        prompt,
+      });
+      result = await review.output;
+    }
     return {
       status: result.safe ? ("passed" as const) : ("blocked" as const),
       flaggedCategories: result.safe ? [] : result.flaggedCategories,
@@ -95,7 +114,7 @@ export const generateStory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => StoryInput.parse(d))
   .handler(async ({ data, context }) => {
-    const { requireTextKey, textModel, textProviderStatus } = await import("./ai-gateway.server");
+    const { cloudflareStructuredChat, requireTextKey, textModel, textProviderStatus } = await import("./ai-gateway.server");
     const { streamText, Output, NoObjectGeneratedError } = await import("ai");
     const key = requireTextKey();
     const jobId = await createStoryJob(context.supabase, {
@@ -131,22 +150,48 @@ Keep it safe, positive and age-appropriate with a satisfying ending. Title under
       pages: z.array(z.object({ text: z.string(), imagePrompt: z.string() })),
     });
     try {
-      const result = streamText({
-        model: textModel(key),
-        output: Output.object({ schema }),
-        prompt,
-        ...(textProviderStatus() === "openai" ? {
-          providerOptions: {
-            openai: {
-              forceReasoning: true,
-              reasoningEffort: "low",
-              store: false,
-                          },
+      let out: z.infer<typeof schema>;
+      if (textProviderStatus() === "cloudflare") {
+        out = schema.parse(await cloudflareStructuredChat({
+          prompt,
+          schemaName: "cylia_story",
+          maxTokens: Math.min(8192, Math.max(1400, data.pages * 400)),
+          responseSchema: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              coverPrompt: { type: "string" },
+              pages: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: { text: { type: "string" }, imagePrompt: { type: "string" } },
+                  required: ["text", "imagePrompt"],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["title", "coverPrompt", "pages"],
+            additionalProperties: false,
           },
-        } : {}),
-      });
-      const out = await result.output;
-      const pages = out.pages.slice(0, data.pages);
+        }));
+      } else {
+        const result = streamText({
+          model: textModel(key),
+          output: Output.object({ schema }),
+          prompt,
+          ...(textProviderStatus() === "openai" ? {
+            providerOptions: {
+              openai: { forceReasoning: true, reasoningEffort: "low", store: false },
+            },
+          } : {}),
+        });
+        out = await result.output;
+      }
+      if (out.pages.length !== data.pages) {
+        throw new Error(`The story generator returned ${out.pages.length} of ${data.pages} requested pages. Please try again.`);
+      }
+      const pages = out.pages;
       await updateStoryJob(context.supabase, jobId, {
         status: "completed",
         completedAt: new Date().toISOString(),
@@ -178,14 +223,49 @@ export const generateImage = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { requireImageKey, imageGateway, imageModelName, gatewayError } = await import("./ai-gateway.server");
+    const { requireImageKey, imageGateway, imageModelName, imageProviderStatus, gatewayError } = await import("./ai-gateway.server");
     const key = requireImageKey();
+    const provider = imageProviderStatus();
     const imageApi = imageGateway();
     const model = imageModelName();
     const refs = [...new Set(data.referencePaths ?? [])].filter((p) =>
       p.startsWith(`${context.userId}/`),
     );
     const base = `${data.style} children's book illustration. ${data.prompt}. Rich, cohesive, professional picture-book quality, gentle lighting, no words or letters in the image.${data.portrait ? " Full-body character portrait on a soft plain background." : ""}`;
+    if (provider === "cloudflare") {
+      if (refs.length > 4) {
+        throw new Error("Cloudflare's illustration model accepts up to four character references at once. Select four or fewer references and try again.");
+      }
+      const form = new FormData();
+      form.append("prompt", refs.length
+        ? `The attached images show approved character references. Preserve each character's face, proportions, outfit, colors and distinctive features, then place them in this scene using the requested art style: ${base}`
+        : base);
+      form.append("width", data.portrait ? "1024" : "1536");
+      form.append("height", "1024");
+      if (refs.length) {
+        const sharp = (await import("sharp")).default;
+        for (const [index, path] of refs.entries()) {
+          const { data: blob, error } = await context.supabase.storage.from("media").download(path);
+          if (error || !blob) throw new Error("A character reference image could not be loaded.");
+          const resized = await sharp(Buffer.from(await blob.arrayBuffer()))
+            .rotate()
+            .resize(510, 510, { fit: "inside", withoutEnlargement: true })
+            .png()
+            .toBuffer();
+          form.append(`input_image_${index}`, new Blob([new Uint8Array(resized)], { type: "image/png" }), `reference-${index}.png`);
+        }
+      }
+      const response = await fetch(`${imageApi}/${model}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}` },
+        body: form,
+      });
+      if (!response.ok) throw await gatewayError(response);
+      const payload = await response.json() as { result?: { image?: string }; image?: string };
+      const b64 = payload.result?.image || payload.image;
+      if (!b64) throw new Error("Cloudflare Workers AI did not return an illustration. Please try again.");
+      return { b64 };
+    }
     const size = data.portrait ? "1024x1024" : "1536x1024";
     let res: Response;
     if (refs.length) {
@@ -506,7 +586,7 @@ export const generateLearningActivities = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => ActivityInput.parse(d))
   .handler(async ({ data }) => {
-    const { requireTextKey, textModel } = await import("./ai-gateway.server");
+    const { cloudflareStructuredChat, requireTextKey, textModel, textProviderStatus } = await import("./ai-gateway.server");
     const { streamText, Output, NoObjectGeneratedError } = await import("ai");
     const schema = z.object({
       summary: z.string(),
@@ -543,20 +623,83 @@ ${data.title ? `Title: ${data.title}\n` : ""}Story:
 ${data.story}
 """`;
     try {
-      const result = streamText({
-        model: textModel(requireTextKey()),
-        output: Output.object({ schema }),
-        prompt,
-        providerOptions: {
-          openai: {
-            forceReasoning: true,
-            reasoningEffort: "low",
-            reasoningSummary: "auto",
-            store: false,
-                      },
-        },
-      });
-      return await result.output;
+      let result: z.infer<typeof schema>;
+      if (textProviderStatus() === "cloudflare") {
+        result = schema.parse(await cloudflareStructuredChat({
+          prompt,
+          schemaName: "cylia_learning_materials",
+          maxTokens: Math.min(7000, 1200 + data.questionCount * 250 + data.vocabCount * 220),
+          responseSchema: {
+            type: "object",
+            properties: {
+              summary: { type: "string" },
+              readingLevelNote: { type: "string" },
+              questions: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    level: { type: "string", enum: ["Recall", "Understanding", "Inference", "Personal connection"] },
+                    question: { type: "string" },
+                    choices: { type: "array", items: { type: "string" } },
+                    answer: { type: "string" },
+                    teacherNote: { type: "string" },
+                  },
+                  required: ["level", "question", "choices", "answer", "teacherNote"],
+                  additionalProperties: false,
+                },
+              },
+              vocabulary: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    word: { type: "string" },
+                    kidDefinition: { type: "string" },
+                    fromStory: { type: "string" },
+                    useItSentence: { type: "string" },
+                    activity: { type: "string" },
+                  },
+                  required: ["word", "kidDefinition", "fromStory", "useItSentence", "activity"],
+                  additionalProperties: false,
+                },
+              },
+              extensionActivities: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: { title: { type: "string" }, minutes: { type: "number" }, instructions: { type: "string" } },
+                  required: ["title", "minutes", "instructions"],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["summary", "readingLevelNote", "questions", "vocabulary", "extensionActivities"],
+            additionalProperties: false,
+          },
+        }));
+      } else {
+        const generated = streamText({
+          model: textModel(requireTextKey()),
+          output: Output.object({ schema }),
+          prompt,
+          ...(textProviderStatus() === "openai" ? {
+            providerOptions: {
+              openai: {
+                forceReasoning: true,
+                reasoningEffort: "low",
+                reasoningSummary: "auto",
+                store: false,
+              },
+            },
+          } : {}),
+        });
+        result = await generated.output;
+      }
+      if (result.questions.length !== data.questionCount || result.vocabulary.length !== data.vocabCount || result.extensionActivities.length !== 2) {
+        throw new Error("The learning-material generator returned incomplete sections. Please try again.");
+      }
+      return result;
     } catch (e) {
       if (NoObjectGeneratedError.isInstance(e))
         throw new Error("The activities came back incomplete. Please try again.");
