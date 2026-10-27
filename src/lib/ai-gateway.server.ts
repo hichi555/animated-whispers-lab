@@ -1,5 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 
+<<<<<<< HEAD
 const configuredBase =
   process.env["AI_API_BASE"]?.trim() ||
   process.env["OPENAI_API_BASE"]?.trim() ||
@@ -99,10 +100,23 @@ export function requireTextKey() {
         ? cloudflareToken()
         : process.env["AI_API_KEY"]?.trim() || process.env["OPENAI_API_KEY"]?.trim();
   if (!key) throw new Error("No story-writing provider is configured. Add the primary key, Cloudflare account ID plus token, Groq key, or Pollinations secret.");
+=======
+/**
+ * Provider configuration is supplied by the app owner. The default is the
+ * OpenAI API; compatible providers can be selected with AI_API_BASE_URL.
+ * Keep keys server-side only (never prefix them with VITE_).
+ */
+export const GATEWAY = (process.env["AI_API_BASE_URL"] || "https://api.openai.com/v1").replace(/\/+$/, "");
+
+export function requireKey() {
+  const key = process.env["AI_API_KEY"];
+  if (!key) throw new Error("AI is not configured. Add AI_API_KEY to your server environment.");
+>>>>>>> origin/independent-cyliatales-auth-visuals
   return key;
 }
 
 export function textModel(key: string) {
+<<<<<<< HEAD
   const provider = selectedTextProvider();
   const accountId = cloudflareAccountId();
   const baseURL = provider === "groq"
@@ -130,6 +144,13 @@ export function textModel(key: string) {
     (provider === "openai" ? process.env["OPENAI_TEXT_MODEL"] : undefined) ?? defaultModel;
   // Workers AI supports Chat Completions for most models; Responses only applies to GPT-OSS.
   return createOpenAI({ baseURL, apiKey: key }).chat(modelId);
+=======
+  const provider = createOpenAI({
+    baseURL: GATEWAY,
+    apiKey: key,
+  });
+  return provider.responses(process.env["AI_TEXT_MODEL"] || "gpt-4.1-mini");
+>>>>>>> origin/independent-cyliatales-auth-visuals
 }
 
 export async function gatewayError(res: Response) {
@@ -142,8 +163,17 @@ export async function gatewayError(res: Response) {
       : "";
     msg = json?.error?.message || providerErrors || json?.message || body;
   } catch {
+<<<<<<< HEAD
     // Keep the raw response when the provider returns non-JSON text.
   }
+=======
+    // Preserve a short provider message when the response is not JSON.
+    msg = body;
+  }
+  if (res.status === 402) return new Error("The configured AI provider reports insufficient credits.");
+  if (res.status === 429) return new Error("The AI provider is busy or rate-limited. Please try again shortly.");
+  if (res.status === 401 || res.status === 403) return new Error("The configured AI provider rejected its API key or permissions.");
+>>>>>>> origin/independent-cyliatales-auth-visuals
   return new Error(`AI request failed (${res.status}): ${String(msg).slice(0, 300)}`);
 }
 
