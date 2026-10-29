@@ -3,15 +3,22 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { cloudflareWorkerUrl, createStoryJob, updateStoryJob } from "./story-jobs.server";
 
+const STORY_LANGUAGES = ["English", "Français", "Español", "العربية", "中文", "日本語"] as const;
+
 const StoryInput = z.object({
   idea: z.string().min(3).max(2000),
   ageRange: z.string(),
   ageGuide: z.string(),
+  language: z.enum(STORY_LANGUAGES).default("English"),
+  translationLanguage: z.enum(STORY_LANGUAGES).nullable().default(null),
   theme: z.string().nullable(),
   tone: z.string().nullable(),
   artStyle: z.string(),
   pages: z.number().int().min(4).max(16),
   characters: z.array(z.object({ name: z.string(), description: z.string() })),
+}).refine((data) => !data.translationLanguage || data.translationLanguage !== data.language, {
+  message: "Choose a different language for the translation.",
+  path: ["translationLanguage"],
 });
 
 const SafetyInput = z.object({
@@ -128,6 +135,8 @@ export const generateStory = createServerFn({ method: "POST" })
       requestPayload: {
         idea: data.idea,
         ageRange: data.ageRange,
+        language: data.language,
+        translationLanguage: data.translationLanguage,
         pages: data.pages,
         artStyle: data.artStyle,
         characterCount: data.characters.length,
@@ -141,17 +150,17 @@ export const generateStory = createServerFn({ method: "POST" })
     const cast = data.characters.length
       ? data.characters.map((c) => `- ${c.name}: ${c.description}`).join("\n")
       : "Invent a small, memorable cast.";
-    const prompt = `Write an original children's picture book.
+    const prompt = `Write an original children's picture book in ${data.language}.
 Idea: ${data.idea}
 Reader age: ${data.ageRange} (${data.ageGuide})
 Theme: ${data.theme ?? "any"}; Tone: ${data.tone ?? "warm"}
 Characters:\n${cast}
-Exactly ${data.pages} pages. For each page give the story text and an illustration prompt describing the scene, characters' consistent appearance, setting and mood (no text in image). Art style: ${data.artStyle}.
+Exactly ${data.pages} pages. For each page give the story text, translationText, and an illustration prompt describing the scene, characters' consistent appearance, setting and mood (no text in image). ${data.translationLanguage ? `Also translate each page into ${data.translationLanguage}, preserving meaning with natural, age-appropriate phrasing; put that translation in translationText.` : "Set translationText to an empty string for every page."} Art style: ${data.artStyle}.
 Keep it safe, positive and age-appropriate with a satisfying ending. Title under 8 words. Also give a cover illustration prompt.`;
     const schema = z.object({
       title: z.string(),
       coverPrompt: z.string(),
-      pages: z.array(z.object({ text: z.string(), imagePrompt: z.string() })),
+      pages: z.array(z.object({ text: z.string(), translationText: z.string(), imagePrompt: z.string() })),
     });
     try {
       let out: z.infer<typeof schema>;
@@ -159,7 +168,7 @@ Keep it safe, positive and age-appropriate with a satisfying ending. Title under
         out = schema.parse(await cloudflareStructuredChat({
           prompt,
           schemaName: "cylia_story",
-          maxTokens: Math.min(8192, Math.max(1400, data.pages * 400)),
+          maxTokens: Math.min(8192, Math.max(1400, data.pages * (data.translationLanguage ? 520 : 400))),
           responseSchema: {
             type: "object",
             properties: {
@@ -169,8 +178,8 @@ Keep it safe, positive and age-appropriate with a satisfying ending. Title under
                 type: "array",
                 items: {
                   type: "object",
-                  properties: { text: { type: "string" }, imagePrompt: { type: "string" } },
-                  required: ["text", "imagePrompt"],
+                  properties: { text: { type: "string" }, translationText: { type: "string" }, imagePrompt: { type: "string" } },
+                  required: ["text", "translationText", "imagePrompt"],
                   additionalProperties: false,
                 },
               },
@@ -195,11 +204,14 @@ Keep it safe, positive and age-appropriate with a satisfying ending. Title under
       if (out.pages.length !== data.pages) {
         throw new Error(`The story generator returned ${out.pages.length} of ${data.pages} requested pages. Please try again.`);
       }
+      if (data.translationLanguage && out.pages.some((page) => !page.translationText.trim())) {
+        throw new Error(`The ${data.translationLanguage} translation is incomplete. Please regenerate the plan before approving it.`);
+      }
       const pages = out.pages;
       await updateStoryJob(context.supabase, jobId, {
         status: "completed",
         completedAt: new Date().toISOString(),
-        resultSummary: { title: out.title, pageCount: pages.length },
+        resultSummary: { title: out.title, pageCount: pages.length, language: data.language, translationLanguage: data.translationLanguage },
       });
       return { ...out, pages, jobId };
     } catch (e) {

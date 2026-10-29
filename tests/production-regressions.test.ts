@@ -67,6 +67,22 @@ test("comic and bilingual formats have persisted schema, ownership policies, and
   assert.match(comicStudio, /Creating panel/);
 });
 
+test("saved language defaults drive bilingual generation and persist on stories and pages", () => {
+  const creation = read("src/routes/_authenticated/stories.new.tsx");
+  const settings = read("src/routes/_authenticated/settings.tsx");
+  const generation = read("src/lib/studio.functions.ts");
+  const types = read("src/integrations/supabase/types.ts");
+  assert.match(settings, /translationLanguage: string/);
+  assert.match(creation, /cyliatales\.preferences\.v1/);
+  assert.match(creation, /translationLanguage: bilingual \? translationLanguage : null/);
+  assert.match(creation, /translation_text: p\.translationText\.trim\(\) \|\| null/);
+  assert.match(creation, /language,/);
+  assert.match(generation, /translationLanguage: z\.enum\(STORY_LANGUAGES\)\.nullable\(\)\.default\(null\)/);
+  assert.match(generation, /translationText: z\.string\(\)/);
+  assert.match(generation, /incomplete/);
+  assert.match(types, /language: string/);
+});
+
 test("server provider routing prefers Groq for text and Cloudflare then Pollinations for images", async () => {
   const names = [
     "AI_TEXT_PROVIDER",

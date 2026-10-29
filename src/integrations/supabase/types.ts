@@ -114,6 +114,7 @@ export type Database = {
           created_at: string;
           id: string;
           idea: string | null;
+          language: string;
           status: string;
           theme: string | null;
           title: string;
@@ -137,6 +138,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           idea?: string | null;
+          language?: string;
           status?: string;
           theme?: string | null;
           title?: string;
@@ -160,6 +162,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           idea?: string | null;
+          language?: string;
           status?: string;
           theme?: string | null;
           title?: string;

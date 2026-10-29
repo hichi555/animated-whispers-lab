@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -15,6 +15,8 @@ import { STYLE_ART } from "@/lib/style-art";
 import { BookOpenText, Check, Clock3, FileText, LockKeyhole, RefreshCw, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
 import { ArtDirectionPicker } from "@/components/ArtDirectionPicker";
 import { ART_DIRECTION_BOARDS } from "@/lib/art-direction";
+
+const STORY_LANGUAGES = ["English", "Français", "Español", "العربية", "中文", "日本語"] as const;
 
 export const Route = createFileRoute("/_authenticated/stories/new")({
   validateSearch: (search: Record<string, unknown>): { idea?: string; age?: string } => ({
@@ -73,6 +75,9 @@ function NewStory() {
   const checkSafety = useServerFn(checkStorySafety);
   const [idea, setIdea] = useState(seededIdea ?? "");
   const [age, setAge] = useState<string>(AGE_RANGES.some((item) => item.id === seededAge) ? seededAge! : AGE_RANGES[1].id);
+  const [language, setLanguage] = useState<(typeof STORY_LANGUAGES)[number]>("English");
+  const [bilingual, setBilingual] = useState(false);
+  const [translationLanguage, setTranslationLanguage] = useState<(typeof STORY_LANGUAGES)[number]>("Français");
   const [theme, setTheme] = useState<string | null>(null);
   const [tone, setTone] = useState<string | null>("Cozy");
   const [style, setStyle] = useState<string>(ART_STYLES[0].id);
@@ -86,8 +91,33 @@ function NewStory() {
   const [draft, setDraft] = useState<{
     title: string;
     coverPrompt: string;
-    pages: { text: string; imagePrompt: string }[];
+    pages: { text: string; translationText: string; imagePrompt: string }[];
   } | null>(null);
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem("cyliatales.preferences.v1");
+      if (!raw) return;
+      const prefs = JSON.parse(raw) as {
+        readingAge?: string; language?: string; bilingual?: boolean;
+        translationLanguage?: string; defaultPages?: string; artDirection?: string;
+      };
+      if (prefs.readingAge && AGE_RANGES.some((item) => item.id === prefs.readingAge)) setAge(prefs.readingAge);
+      if (prefs.language && STORY_LANGUAGES.some((item) => item === prefs.language)) setLanguage(prefs.language as (typeof STORY_LANGUAGES)[number]);
+      if (typeof prefs.bilingual === "boolean") setBilingual(prefs.bilingual);
+      const preferredTranslation = prefs.translationLanguage && STORY_LANGUAGES.some((item) => item === prefs.translationLanguage)
+        ? prefs.translationLanguage as (typeof STORY_LANGUAGES)[number]
+        : undefined;
+      setTranslationLanguage(preferredTranslation && preferredTranslation !== prefs.language
+        ? preferredTranslation
+        : STORY_LANGUAGES.find((item) => item !== (prefs.language ?? "English")) ?? "Français");
+      const preferredPages = Number(prefs.defaultPages);
+      if ([8, 12, 16].includes(preferredPages)) setPages(preferredPages);
+      const board = ART_DIRECTION_BOARDS.find((item) => item.id === prefs.artDirection);
+      if (board) { setDirectionId(board.id); setStyle(board.name); }
+    } catch {
+      toast.error("Saved studio defaults could not be applied; the standard creation settings are ready.");
+    }
+  }, []);
   const { data: chars = [] } = useQuery({
     queryKey: ["characters"],
     queryFn: async () =>
@@ -126,6 +156,8 @@ function NewStory() {
             idea,
             ageRange: age,
             ageGuide: ageInfo.words,
+            language,
+            translationLanguage: bilingual ? translationLanguage : null,
             theme,
             tone,
             artStyle: directionId
@@ -158,6 +190,7 @@ function NewStory() {
           user_id: user.id,
           title: draft.title,
           idea,
+          language,
           age_range: age,
           theme,
           tone,
@@ -181,6 +214,8 @@ function NewStory() {
           page_number: i + 1,
           text: p.text,
           image_prompt: p.imagePrompt,
+          translation_text: p.translationText.trim() || null,
+          translation_language: p.translationText.trim() && bilingual ? translationLanguage : null,
         })),
       );
       if (pe) throw pe;
@@ -295,7 +330,27 @@ function NewStory() {
             ))}
           </div>
         </Section>
-        <Section title="3. Theme & tone">
+        <Section title="3. Story language & edition">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-2 text-sm font-semibold">
+              Primary language
+              <select aria-label="Story language" value={language} onChange={(event) => { setLanguage(event.target.value as (typeof STORY_LANGUAGES)[number]); setDraft(null); }} className="h-11 rounded-lg border bg-background px-3 font-normal">
+                {STORY_LANGUAGES.map((item) => <option key={item} value={item}>{item}</option>)}
+              </select>
+            </label>
+            <label className="flex flex-col gap-2 text-sm font-semibold">
+              Parallel translation
+              <select aria-label="Translation language" disabled={!bilingual} value={translationLanguage} onChange={(event) => { setTranslationLanguage(event.target.value as (typeof STORY_LANGUAGES)[number]); setDraft(null); }} className="h-11 rounded-lg border bg-background px-3 font-normal disabled:cursor-not-allowed disabled:opacity-60">
+                {STORY_LANGUAGES.filter((item) => item !== language).map((item) => <option key={item} value={item}>{item}</option>)}
+              </select>
+            </label>
+          </div>
+          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border bg-card p-4 transition hover:border-primary/40">
+            <input type="checkbox" checked={bilingual} onChange={(event) => { setBilingual(event.target.checked); setDraft(null); }} className="mt-1 h-4 w-4 accent-primary" />
+            <span><strong className="block text-sm">Create a side-by-side bilingual edition</strong><span className="mt-1 block text-xs leading-5 text-muted-foreground">Generate a natural, age-appropriate translation for every page. You can review and edit it before reading.</span></span>
+          </label>
+        </Section>
+        <Section title="4. Theme & tone">
           <div className="space-y-3">
             {THEMES.map((g) => (
               <div key={g.group}>
@@ -323,7 +378,7 @@ function NewStory() {
             </div>
           </div>
         </Section>
-        <Section title="4. CyliaTales art direction">
+        <Section title="5. CyliaTales art direction">
           <p className="mb-4 max-w-2xl text-sm leading-6 text-muted-foreground">
             Choose a visual world with a real production board. This direction is carried into every
             illustration prompt and stays attached to the story.
@@ -373,7 +428,7 @@ function NewStory() {
             </div>
           </div>
         </Section>
-        <Section title="5. Cast, narrator & length">
+        <Section title="6. Cast, narrator & length">
           <div className="flex flex-wrap gap-2">
             {chars.map((c) => (
               <Chip
@@ -440,7 +495,7 @@ function NewStory() {
                 </p>
                 <h2 className="mt-2 font-display text-2xl">{draft.title}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {draft.pages.length} pages · {age} · {style}
+                  {draft.pages.length} pages · Ages {age} · {language}{bilingual ? ` + ${translationLanguage}` : ""} · {style}
                 </p>
               </div>
               <Button type="button" variant="outline" onClick={() => setDraft(null)}>
@@ -455,6 +510,7 @@ function NewStory() {
                   </div>
                   <div>
                     <p className="font-display text-lg leading-relaxed">{page.text}</p>
+                    {bilingual && page.translationText && <div className="mt-3 rounded-lg border-l-2 border-accent bg-secondary/35 px-4 py-3"><p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">{translationLanguage} · review</p><p className="mt-1 font-display text-base leading-relaxed">{page.translationText}</p></div>}
                     <p className="mt-2 text-xs text-muted-foreground">
                       <span className="font-semibold text-foreground">Visual direction:</span>{" "}
                       {page.imagePrompt}
@@ -490,6 +546,7 @@ function NewStory() {
             </div>
             <div className="space-y-4 p-5 text-sm">
               <div className="flex items-start gap-3"><BookOpenText className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span><strong className="block">Reader</strong><span className="text-muted-foreground">Ages {age} · {pages} pages</span></span></div>
+              <div className="flex items-start gap-3"><BookOpenText className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span><strong className="block">Edition</strong><span className="text-muted-foreground">{language}{bilingual ? ` + ${translationLanguage}` : " · single language"}</span></span></div>
               <div className="flex items-start gap-3"><Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span><strong className="block">Feeling</strong><span className="text-muted-foreground">{theme || "Choose a story theme"} · {tone || "Choose a tone"}</span></span></div>
               <div className="flex items-start gap-3"><Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span><strong className="block">Voice</strong><span className="text-muted-foreground">{voiceProfileId ? "Private voice" : voice}</span></span></div>
               <div className="flex items-start gap-3"><LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span><strong className="block">Review-first</strong><span className="text-muted-foreground">No illustration is produced before approval.</span></span></div>

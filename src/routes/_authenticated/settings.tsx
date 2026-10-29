@@ -40,6 +40,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
 type Preferences = {
   readingAge: "0-3" | "5-7" | "9-12";
   language: string;
+  translationLanguage: string;
   bilingual: boolean;
   narration: boolean;
   dyslexiaFriendly: boolean;
@@ -53,6 +54,7 @@ type Preferences = {
 const DEFAULTS: Preferences = {
   readingAge: "5-7",
   language: "English",
+  translationLanguage: "Français",
   bilingual: false,
   narration: true,
   dyslexiaFriendly: false,
@@ -103,7 +105,13 @@ function SettingsPage() {
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setPreferences({ ...DEFAULTS, ...JSON.parse(raw) });
+      if (raw) {
+        const restored = { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Preferences>) };
+        if (restored.translationLanguage === restored.language) {
+          restored.translationLanguage = ["English", "Français", "Español", "العربية", "中文", "日本語"].find((item) => item !== restored.language) ?? "English";
+        }
+        setPreferences(restored);
+      }
     } catch {
       toast.error("Your saved preferences could not be loaded.");
     }
@@ -209,7 +217,14 @@ function SettingsPage() {
                 <span>Primary language</span>
                 <select
                   value={preferences.language}
-                  onChange={(e) => update("language", e.target.value)}
+                  onChange={(e) => {
+                    const nextLanguage = e.target.value;
+                    update("language", nextLanguage);
+                    if (nextLanguage === preferences.translationLanguage) {
+                      const alternate = ["English", "Français", "Español", "العربية", "中文", "日本語"].find((item) => item !== nextLanguage);
+                      if (alternate) update("translationLanguage", alternate);
+                    }
+                  }}
                 >
                   <option>English</option>
                   <option>Français</option>
@@ -217,6 +232,21 @@ function SettingsPage() {
                   <option>العربية</option>
                   <option>中文</option>
                   <option>日本語</option>
+                </select>
+              </label>
+              <label className="settings-field">
+                <span>Default second language</span>
+                <select
+                  value={preferences.translationLanguage}
+                  onChange={(e) => update("translationLanguage", e.target.value)}
+                  disabled={!preferences.bilingual}
+                >
+                  {[
+                    ["English", "English"], ["Français", "French"], ["Español", "Spanish"],
+                    ["العربية", "Arabic"], ["中文", "Chinese"], ["日本語", "Japanese"],
+                  ].filter(([value]) => value !== preferences.language).map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
                 </select>
               </label>
             </div>
@@ -354,7 +384,7 @@ function SettingsPage() {
               <span className="text-muted-foreground">Language</span>
               <strong>
                 {preferences.language}
-                {preferences.bilingual ? " + bilingual" : ""}
+                {preferences.bilingual ? ` + ${preferences.translationLanguage}` : ""}
               </strong>
             </div>
             <div className="flex items-center justify-between">
