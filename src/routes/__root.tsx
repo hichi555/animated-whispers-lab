@@ -13,10 +13,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { isSupabaseConfigured, supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
-<<<<<<< HEAD
 import { reportRuntimeError } from "../lib/runtime-error-reporting";
-=======
->>>>>>> origin/independent-cyliatales-auth-visuals
 
 function NotFoundComponent() {
   return (
@@ -43,12 +40,9 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
-<<<<<<< HEAD
   useEffect(() => {
     reportRuntimeError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
-=======
->>>>>>> origin/independent-cyliatales-auth-visuals
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
