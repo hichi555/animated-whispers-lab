@@ -1,0 +1,47 @@
+{
+  "startedAt": "2026-10-29T00:58:31.967Z",
+  "textProvider": "groq",
+  "configuredConcurrency": 3,
+  "groqConcurrentStoryGeneration": {
+    "concurrency": 3,
+    "requests": [
+      {
+        "status": "passed",
+        "latencyMs": 1705,
+        "pageCount": 4
+      },
+      {
+        "status": "passed",
+        "latencyMs": 1492,
+        "pageCount": 4
+      },
+      {
+        "status": "passed",
+        "latencyMs": 2691,
+        "pageCount": 4
+      }
+    ],
+    "successful": 3,
+    "totalWallMs": 2700
+  },
+  "cloudflareStructuredStory": {
+    "status": "passed",
+    "latencyMs": 5559,
+    "pageCount": 4
+  },
+  "cloudflareImageGeneration": {
+    "status": "passed",
+    "latencyMs": 8307,
+    "outputBytes": 859593
+  },
+  "pollinationsImageGeneration": {
+    "status": "failed",
+    "error": "AI request failed (402): Insufficient balance. This request costs ~0.0162 pollen, but your available paid balance is 0.0000. Top up at https://enter.pollinations.ai/top-up?ref=agent_low_balance_topup."
+  },
+  "pollinationsNarration": {
+    "status": "failed",
+    "error": "AI request failed (402): Insufficient balance. This request costs ~0.0015 pollen, but your available paid balance is 0.0000. Top up at https://enter.pollinations.ai/top-up?ref=agent_low_balance_topup."
+  },
+  "completedAt": "2026-10-29T00:58:51.513Z",
+  "status": "failed"
+}

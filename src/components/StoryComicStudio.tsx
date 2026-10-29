@@ -32,6 +32,9 @@ export function StoryComicStudio({
     "Three connected comic panels. Panel 1 establishes the place, panel 2 captures the character’s decision, panel 3 lands the emotional beat. Keep the approved cast and art direction exact. No speech bubbles or text in the image.",
   );
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<{ index: number; total: number; panel: number } | null>(
+    null,
+  );
   const page = pages[selected];
   const { data: panels = [] } = useQuery({
     queryKey: ["story-panels", page?.id],
@@ -48,6 +51,10 @@ export function StoryComicStudio({
   async function buildPanels() {
     if (!user || !page) return;
     setBusy(true);
+    const completePage = panels.length >= 3;
+    const panelNumbers = completePage
+      ? [1, 2, 3]
+      : [1, 2, 3].filter((number) => !panels.some((panel) => panel.panel_number === number));
     try {
       const refs = cast
         .flatMap((c) => [c.portrait_url, c.reference_url])
@@ -59,7 +66,8 @@ export function StoryComicStudio({
             `${c.name}: ${c.appearance ?? "approved appearance"}; ${c.outfit ?? "approved outfit"}`,
         )
         .join(". ");
-      for (let i = 1; i <= 3; i++) {
+      for (const [index, i] of panelNumbers.entries()) {
+        setProgress({ index: index + 1, total: panelNumbers.length, panel: i });
         const prompt = `${direction} This is panel ${i} of 3. Story beat: ${page.text}. Visual direction: ${page.image_prompt ?? ""}. Approved cast: ${castLine}. Art style: ${story.art_style}. Compose a professional comic panel with a clear focal action and readable visual storytelling. No letters, captions, logos or watermark.`;
         const { b64 } = await makeImage({
           data: { prompt, style: story.art_style, referencePaths: refs },
@@ -81,11 +89,17 @@ export function StoryComicStudio({
         if (error) throw error;
       }
       await qc.invalidateQueries({ queryKey: ["story-panels", page.id] });
-      toast.success(`Comic page ${page.page_number} built with three saved panels`);
+      toast.success(
+        completePage
+          ? `Comic page ${page.page_number} regenerated with three saved panels`
+          : `Comic page ${page.page_number} now has three saved panels`,
+      );
     } catch (error) {
+      await qc.invalidateQueries({ queryKey: ["story-panels", page.id] });
       toast.error((error as Error).message);
     } finally {
       setBusy(false);
+      setProgress(null);
     }
   }
   return (
@@ -120,19 +134,27 @@ export function StoryComicStudio({
         className="mt-5 min-h-24"
         aria-label="Comic direction"
       />
-      <Button className="mt-3" disabled={busy || !page} onClick={buildPanels}>
+      <Button className="mt-3" disabled={busy || !page || !user} onClick={buildPanels}>
         {busy ? (
           <>
-            <Loader2 className="animate-spin" /> Building three panels…
+            <Loader2 className="animate-spin" />{" "}
+            {progress
+              ? `Creating panel ${progress.panel} · ${progress.index} of ${progress.total}…`
+              : "Preparing comic page…"}
           </>
         ) : (
           <>
-            <Sparkles /> {panels.length ? "Regenerate comic page" : "Build comic page"}
+            <Sparkles />{" "}
+            {panels.length >= 3
+              ? "Regenerate comic page"
+              : panels.length
+                ? `Finish comic page (${panels.length}/3)`
+                : "Build comic page"}
           </>
         )}
       </Button>
       {panels.length > 0 && (
-        <div className="mt-7 grid gap-4 md:grid-cols-3">
+        <div className="mt-7 grid gap-3 md:grid-cols-2">
           {panels.map((panel) => (
             <PanelCard key={panel.id} panel={panel} />
           ))}
@@ -149,23 +171,27 @@ export function StoryComicStudio({
 }
 function PanelCard({ panel }: { panel: Panel }) {
   const url = useMediaUrl(panel.image_url);
+  const alt = panel.text || panel.image_prompt.slice(0, 180);
   return (
-    <figure className="overflow-hidden rounded-2xl border bg-background">
-      <div className="aspect-[4/3] bg-secondary">
+    <figure
+      className={`overflow-hidden rounded-xl border-2 border-foreground/15 bg-background shadow-sm ${panel.layout === "wide" ? "md:col-span-2" : ""}`}
+    >
+      <div
+        className={`relative bg-secondary ${panel.layout === "wide" ? "aspect-[2.2/1]" : "aspect-[4/3]"}`}
+      >
         {url ? (
-          <img
-            src={url}
-            alt={`Comic panel ${panel.panel_number}`}
-            className="h-full w-full object-cover"
-          />
+          <img src={url} alt={alt} className="h-full w-full object-cover" />
         ) : (
           <div className="grid h-full place-items-center">
             <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         )}
+        <span className="absolute left-3 top-3 rounded-md bg-background/90 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-foreground shadow-sm">
+          Panel {String(panel.panel_number).padStart(2, "0")}
+        </span>
       </div>
-      <figcaption className="p-3 text-xs text-muted-foreground">
-        Panel {panel.panel_number} · {panel.layout}
+      <figcaption className="border-t px-3 py-2.5 text-sm leading-5 text-foreground/80">
+        {panel.text || `Scene ${panel.panel_number} · ${panel.layout} frame`}
       </figcaption>
     </figure>
   );

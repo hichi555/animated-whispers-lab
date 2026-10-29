@@ -75,6 +75,7 @@ export function BookReader({
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const narration = useRef<HTMLAudioElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     try {
       const saved = Number(localStorage.getItem(`reader-position:${storyId}`));
@@ -102,18 +103,44 @@ export function BookReader({
     fit();
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    const previousFocus =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusable = () =>
+      Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter((element) => element.getAttribute("aria-hidden") !== "true");
+    focusable()[0]?.focus({ preventScroll: true });
     window.addEventListener("resize", fit);
     const key = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLElement && e.target.closest("input,textarea,select")) return;
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowRight") book.current?.pageFlip()?.flipNext();
       if (e.key === "ArrowLeft") book.current?.pageFlip()?.flipPrev();
+      if (e.key === "Tab") {
+        const items = focusable();
+        if (!items.length) {
+          e.preventDefault();
+          return;
+        }
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
     };
     window.addEventListener("keydown", key);
     return () => {
       document.body.style.overflow = overflow;
       window.removeEventListener("resize", fit);
       window.removeEventListener("keydown", key);
+      previousFocus?.focus({ preventScroll: true });
     };
   }, [onClose]);
 
@@ -195,6 +222,7 @@ export function BookReader({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label={`Read ${title}`}
@@ -348,9 +376,21 @@ export function BookReader({
             </Leaf>,
             <Leaf key={`${p.id}-t`} className="flip-art flip-panorama-right">
               <Art path={p.image_url} alt={`Illustration continuation for page ${p.page_number}`} />
-              <div className={`flip-prose flip-story-panel ${bilingual && p.translation_text ? "reader-bilingual" : ""}`}>
-                <div><p className="reader-language-label">Original</p><p>{p.text}</p></div>
-                {bilingual && p.translation_text && <div><p className="reader-language-label">{p.translation_language || "Translation"}</p><p lang={p.translation_language || undefined}>{p.translation_text}</p></div>}
+              <div
+                className={`flip-prose flip-story-panel ${bilingual && p.translation_text ? "reader-bilingual" : ""}`}
+              >
+                <div>
+                  <p className="reader-language-label">Original</p>
+                  <p>{p.text}</p>
+                </div>
+                {bilingual && p.translation_text && (
+                  <div>
+                    <p className="reader-language-label">
+                      {p.translation_language || "Translation"}
+                    </p>
+                    <p lang={p.translation_language || undefined}>{p.translation_text}</p>
+                  </div>
+                )}
               </div>
               <span className="flip-folio">{p.page_number}</span>
             </Leaf>,

@@ -271,7 +271,7 @@ function CreateHub() {
                 to="/voices"
                 className="inline-flex h-10 items-center gap-2 rounded-md border border-primary-foreground/25 px-4 text-sm font-semibold transition hover:bg-primary-foreground/10"
               >
-                <AudioLines className="h-4 w-4" /> Narrate with ElevenLabs
+                <AudioLines className="h-4 w-4" /> Choose a narrator
               </Link>
             </div>
           </div>
@@ -373,17 +373,18 @@ function CreateHub() {
       <section className="mt-12 rounded-2xl border bg-card p-6 shadow-soft md:p-7" aria-labelledby="model-router-title">
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary"><Sparkles className="h-4 w-4" /> Generation connections</p>
         <h2 id="model-router-title" className="mt-2 text-2xl font-semibold">Only configured providers appear ready.</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">CyliaTales checks server-side credentials without exposing keys in the browser. Availability means a credential is present; a successful generation still depends on provider access, model availability, and account limits.</p>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Credentials stay on the server. A configured connection can still be affected by provider access, model availability, or account limits; image and read-aloud requests move to their configured backup when the primary fails.</p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
             { label: "Story writing", ready: providers?.text },
             { label: "Illustration", ready: providers?.image },
-            { label: "Narration", ready: providers?.elevenLabs },
+            { label: "Read-aloud narration", ready: providers?.narration },
+            { label: "ElevenLabs voice cloning", ready: providers?.elevenLabs },
             { label: "Scene motion", ready: providers?.motion },
             { label: "Groq text", ready: providers?.groq },
-            { label: "Pollinations text / image", ready: providers?.pollinations },
+            { label: "Pollinations text / image / narration", ready: providers?.pollinations },
             { label: "Cloudflare Workers AI", ready: providers?.cloudflareAI },
-            { label: "Cloudflare orchestration credentials", ready: providers?.cloudflareWorker },
+            { label: "Durable story-job worker (optional)", ready: providers?.cloudflareWorker },
           ].map((item) => <div key={item.label} className="flex items-center justify-between gap-3 rounded-xl border bg-background/60 p-4"><span className="text-sm font-medium">{item.label}</span><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${item.ready ? "bg-emerald-100 text-emerald-800" : "bg-secondary text-muted-foreground"}`}>{providers ? item.ready ? "Credential found" : "Not configured" : "Checking…"}</span></div>)}
         </div>
       </section>
@@ -393,14 +394,14 @@ function CreateHub() {
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Recommended first run</p>
           <h2 className="mt-3 text-2xl font-semibold">The premium story pipeline</h2>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            {["Brief & manuscript", "Character identity", "Illustration direction", "ElevenLabs narration", "Image-to-video scene", "Export & share"].map((step, index) => <div key={step} className="flex items-center gap-3 rounded-xl border bg-card p-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">{index + 1}</span><span className="text-sm font-medium">{step}</span></div>)}
+            {["Brief & manuscript", "Character identity", "Illustration direction", "Read-aloud narration", "Image-to-video scene", "Export & share"].map((step, index) => <div key={step} className="flex items-center gap-3 rounded-xl border bg-card p-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">{index + 1}</span><span className="text-sm font-medium">{step}</span></div>)}
           </div>
         </div>
         <div className="rounded-2xl bg-accent p-6 text-accent-foreground md:p-7">
           <Mic2 className="h-6 w-6" />
           <h2 className="mt-5 text-2xl font-semibold">A voice for every page.</h2>
-          <p className="mt-3 text-sm leading-6 text-accent-foreground/75">Page narration uses the server-side voice provider when its credential is configured. Check the connection panel above before starting a narration run.</p>
-          <Button className="mt-6" variant="secondary" asChild><Link to="/voices"><Play /> Test a narrator</Link></Button>
+          <p className="mt-3 text-sm leading-6 text-accent-foreground/75">Read-aloud audio tries the primary server-side voice endpoint, then Pollinations when available. Provider access and account balance can still limit a request; voice cloning is a separate, optional ElevenLabs service.</p>
+          <Button className="mt-6" variant="secondary" asChild><Link to="/voices"><Play /> Choose a narrator</Link></Button>
         </div>
       </section>
     </div>

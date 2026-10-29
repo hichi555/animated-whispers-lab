@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { safeInternalReturnTo } from "@/lib/auth-redirect";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth/callback")({
   ssr: false,
   validateSearch: (search: Record<string, unknown>) => ({
-    returnTo: typeof search["returnTo"] === "string" ? search["returnTo"] : "/studio",
+    returnTo: safeInternalReturnTo(search["returnTo"]),
   }),
   head: () => ({
     meta: [{ title: "Finishing sign in — CyliaTales" }, { name: "robots", content: "noindex" }],
@@ -26,14 +27,17 @@ function AuthCallback() {
     const goToStudio = () => {
       if (!active || redirected) return;
       redirected = true;
-      navigate({ to: returnTo === "/auth" ? "/studio" : returnTo || "/studio", replace: true });
+      navigate({
+        to: returnTo === "/auth" ? "/studio" : safeInternalReturnTo(returnTo),
+        replace: true,
+      });
     };
 
     const finish = async () => {
       const params = new URL(window.location.href).searchParams;
       const providerError = params.get("error_description") || params.get("error");
       if (providerError) {
-        setFailure(decodeURIComponent(providerError.replace(/\+/g, " ")));
+        setFailure(providerError);
         return;
       }
 

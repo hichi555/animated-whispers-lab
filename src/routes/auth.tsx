@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { resolveOAuthCallbackOrigin, shouldHandoffOAuth } from "@/lib/auth-redirect";
 import { isSupabaseConfigured, supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Logo } from "@/components/Logo";
@@ -8,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import hero from "@/assets/hero.jpg";
-
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -39,12 +39,9 @@ function AuthPage() {
   const [notice, setNotice] = useState("");
   const autoGoogleStarted = useRef(false);
   const configuredOrigin = import.meta.env["VITE_APP_URL"] as string | undefined;
-  const browserOrigin = typeof window === "undefined" ? configuredOrigin ?? "" : window.location.origin;
-  // Use this same CyliaTales deployment unless its public URL is explicitly configured.
-  const callbackOrigin = (configuredOrigin || browserOrigin).replace(/\/$/, "");
-  const localOrigin = typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-  const handoffToPublic = localOrigin && Boolean(configuredOrigin) && callbackOrigin !== browserOrigin;
+  const browserOrigin = typeof window === "undefined" ? "" : window.location.origin;
+  const callbackOrigin = resolveOAuthCallbackOrigin(browserOrigin, configuredOrigin);
+  const handoffToPublic = shouldHandoffOAuth(browserOrigin, callbackOrigin);
   const callbackUrl = `${callbackOrigin}/auth/callback?returnTo=%2Fstudio`;
 
   useEffect(() => {
@@ -129,7 +126,12 @@ function AuthPage() {
             ? "Pick up where your story left off."
             : "Free to start. Your books, characters and voices in one place."}
         </p>
-        <Button variant="outline" disabled={busy || !supabaseReady} className="mt-8 h-11" onClick={google}>
+        <Button
+          variant="outline"
+          disabled={busy || !supabaseReady}
+          className="mt-8 h-11"
+          onClick={google}
+        >
           Continue with Google
         </Button>
         {notice && (

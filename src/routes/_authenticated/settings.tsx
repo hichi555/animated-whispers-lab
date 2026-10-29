@@ -165,18 +165,20 @@ function SettingsPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Production infrastructure</p>
-            <h2 id="provider-status-title" className="mt-2 text-xl font-semibold">AI provider connections</h2>
+            <h2 id="provider-status-title" className="mt-2 text-xl font-semibold">AI provider credentials</h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">Keys are checked server-side. Values are never sent to the browser or stored in preferences.</p>
           </div>
-          <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-semibold">{providerStatus?.baseUrlConfigured ? "Gateway configured" : "Gateway needs configuration"}</span>
+          <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-semibold">{providerStatus?.baseUrlConfigured ? "Custom gateway URL" : "Provider default endpoint"}</span>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             ["Writing & safety", providerStatus?.text],
             ["Illustration", providerStatus?.image],
-            ["ElevenLabs narration", providerStatus?.elevenLabs],
+            ["Read-aloud narration", providerStatus?.narration],
+            ["Voice cloning", providerStatus?.elevenLabs],
             ["Motion delivery", providerStatus?.motion],
-          ].map(([label, connected]) => <div key={label as string} className="flex items-center justify-between rounded-xl border bg-background/60 p-3"><span className="text-sm font-medium">{label as string}</span><span className={connected ? "text-xs font-semibold text-primary" : "text-xs font-semibold text-muted-foreground"}>{connected ? "Connected" : "Not configured"}</span></div>)}
+            ["Pollinations backup", providerStatus?.pollinations],
+          ].map(([label, connected]) => <div key={label as string} className="flex items-center justify-between rounded-xl border bg-background/60 p-3"><span className="text-sm font-medium">{label as string}</span><span className={connected ? "text-xs font-semibold text-primary" : "text-xs font-semibold text-muted-foreground"}>{connected ? "Credential found" : "Not configured"}</span></div>)}
         </div>
       </section>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">

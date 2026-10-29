@@ -35,11 +35,15 @@ export const getStudioProviderStatus = createServerFn({ method: "GET" })
         (process.env["CLOUDFLARE_AI_API_TOKEN"]?.trim() || process.env["CLOUDFLARE_API_TOKEN"]?.trim() || process.env["CLOUDFLARE_API_KEY"]?.trim())) ||
       process.env["POLLINATIONS_API_KEY"]?.trim() || process.env["POLLINATIONS_KEY"]?.trim(),
     ),
+    narration: Boolean(
+      process.env["AI_API_KEY"]?.trim() || process.env["OPENAI_API_KEY"]?.trim() ||
+      process.env["POLLINATIONS_API_KEY"]?.trim() || process.env["POLLINATIONS_KEY"]?.trim(),
+    ),
     elevenLabs: Boolean(process.env["ELEVENLABS_API_KEY"]?.trim()),
     motion: Boolean(process.env["AI_API_KEY"]?.trim() || process.env["OPENAI_API_KEY"]?.trim()),
     baseUrlConfigured: Boolean(
       process.env["AI_API_BASE"]?.trim() || process.env["OPENAI_API_BASE"]?.trim() ||
-      process.env["OPENAI_BASE_URL"]?.trim() || process.env["AI_API_KEY"]?.trim() || process.env["OPENAI_API_KEY"]?.trim(),
+      process.env["OPENAI_BASE_URL"]?.trim(),
     ),
     groq: Boolean(process.env["GROQ_API_KEY"]?.trim()),
     pollinations: Boolean(process.env["POLLINATIONS_API_KEY"]?.trim() || process.env["POLLINATIONS_KEY"]?.trim()),
@@ -223,94 +227,31 @@ export const generateImage = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { requireImageKey, imageGateway, imageModelName, imageProviderStatus, gatewayError } = await import("./ai-gateway.server");
-    const key = requireImageKey();
-    const provider = imageProviderStatus();
-    const imageApi = imageGateway();
-    const model = imageModelName();
+    const { imageProviderCandidates, generateImageWithProvider, withImageProviderFallback } = await import("./ai-gateway.server");
+    const providers = imageProviderCandidates();
+    if (!providers.length) throw new Error("No illustration provider is configured. Add a server-side provider key and try again.");
     const refs = [...new Set(data.referencePaths ?? [])].filter((p) =>
       p.startsWith(`${context.userId}/`),
-    );
+    ).slice(0, 6);
+    const referenceImages: Array<{ bytes: Uint8Array; mime: string; filename: string }> = [];
+    for (const [index, path] of refs.entries()) {
+      const { data: blob, error } = await context.supabase.storage.from("media").download(path);
+      if (error || !blob) throw new Error("A character reference image could not be loaded.");
+      referenceImages.push({
+        bytes: new Uint8Array(await blob.arrayBuffer()),
+        mime: blob.type || "image/png",
+        filename: `reference-${index}.${blob.type.includes("jpeg") ? "jpg" : blob.type.includes("webp") ? "webp" : "png"}`,
+      });
+    }
     const base = `${data.style} children's book illustration. ${data.prompt}. Rich, cohesive, professional picture-book quality, gentle lighting, no words or letters in the image.${data.portrait ? " Full-body character portrait on a soft plain background." : ""}`;
-    if (provider === "cloudflare") {
-      if (refs.length > 4) {
-        throw new Error("Cloudflare's illustration model accepts up to four character references at once. Select four or fewer references and try again.");
-      }
-      const form = new FormData();
-      form.append("prompt", refs.length
-        ? `The attached images show approved character references. Preserve each character's face, proportions, outfit, colors and distinctive features, then place them in this scene using the requested art style: ${base}`
-        : base);
-      form.append("width", data.portrait ? "1024" : "1536");
-      form.append("height", "1024");
-      if (refs.length) {
-        const sharp = (await import("sharp")).default;
-        for (const [index, path] of refs.entries()) {
-          const { data: blob, error } = await context.supabase.storage.from("media").download(path);
-          if (error || !blob) throw new Error("A character reference image could not be loaded.");
-          const resized = await sharp(Buffer.from(await blob.arrayBuffer()))
-            .rotate()
-            .resize(510, 510, { fit: "inside", withoutEnlargement: true })
-            .png()
-            .toBuffer();
-          form.append(`input_image_${index}`, new Blob([new Uint8Array(resized)], { type: "image/png" }), `reference-${index}.png`);
-        }
-      }
-      const response = await fetch(`${imageApi}/${model}`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${key}` },
-        body: form,
-      });
-      if (!response.ok) throw await gatewayError(response);
-      const payload = await response.json() as { result?: { image?: string }; image?: string };
-      const b64 = payload.result?.image || payload.image;
-      if (!b64) throw new Error("Cloudflare Workers AI did not return an illustration. Please try again.");
-      return { b64 };
-    }
-    const size = data.portrait ? "1024x1024" : "1536x1024";
-    let res: Response;
-    if (refs.length) {
-      const form = new FormData();
-      form.append("model", model);
-      form.append(
-        "prompt",
-        `Reference images 1-${refs.length} show the established characters. Keep each character's face, hairstyle, body proportions, outfit and color palette exactly consistent with the references, redrawn in the requested art style. Do not copy the references' backgrounds or poses. Scene: ${base}`,
-      );
-      form.append("size", size);
-      form.append("quality", "high");
-      for (const [i, path] of refs.entries()) {
-        const { data: blob, error } = await context.supabase.storage.from("media").download(path);
-        if (error || !blob) throw new Error("A character reference image could not be loaded.");
-        form.append(
-          "image[]",
-          new File(
-            [blob],
-            `reference-${i}.${blob.type.includes("jpeg") ? "jpg" : blob.type.includes("webp") ? "webp" : "png"}`,
-            { type: blob.type || "image/png" },
-          ),
-        );
-      }
-      res = await fetch(`${imageApi}/images/edits`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${key}` },
-        body: form,
-      });
-    } else {
-      res = await fetch(`${imageApi}/images/generations`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model,
-          prompt: base,
-          size,
-          quality: "high",
-        }),
-      });
-    }
-    if (!res.ok) throw await gatewayError(res);
-    const json = (await res.json()) as { data?: { b64_json?: string }[] };
-    const b64 = json.data?.[0]?.b64_json;
-    if (!b64) throw new Error("No image was returned. Please try again.");
-    return { b64 };
+    const consistentPrompt = referenceImages.length
+      ? `Reference images show the established characters. Preserve their faces, proportions, outfits, colors and distinctive features. Scene: ${base}`
+      : base;
+    return withImageProviderFallback(providers, (provider) => generateImageWithProvider(provider, {
+      prompt: consistentPrompt,
+      portrait: data.portrait ?? false,
+      references: referenceImages,
+    }));
   });
 
 const CAMERA_PROMPTS: Record<string, string> = {
@@ -415,42 +356,41 @@ export const checkSceneMotion = createServerFn({ method: "POST" })
     return { status: "completed" };
   });
 
+const OPENAI_TTS_VOICES: Record<string, string> = {
+  Kore: "shimmer", Charon: "onyx", Aoede: "nova", Puck: "alloy",
+  Leda: "coral", Fenrir: "echo", Achernar: "fable", Orus: "sage",
+};
+
 export const narrate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z.object({ text: z.string().min(1).max(3000), voice: z.string() }).parse(d),
   )
   .handler(async ({ data }) => {
-    const { requireKey, GATEWAY, gatewayError } = await import("./ai-gateway.server");
-    const key = requireKey();
-    const res = await fetch(`${GATEWAY}/audio/speech`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3.1-flash-tts-preview",
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: `Read this aloud as a warm, expressive children's storyteller: ${data.text}`,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          responseModalities: ["AUDIO"],
-          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: data.voice } } },
-        },
-        stream_format: "audio",
-      }),
-    });
-    if (!res.ok) throw await gatewayError(res);
-    const buf = new Uint8Array(await res.arrayBuffer());
-    let bin = "";
-    for (let i = 0; i < buf.length; i += 0x8000)
-      bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
-    return { b64: btoa(bin), mime: res.headers.get("content-type") ?? "audio/wav" };
+    const { requireKey, GATEWAY, gatewayError, generatePollinationsSpeech } = await import("./ai-gateway.server");
+    try {
+      const key = requireKey();
+      const voice = OPENAI_TTS_VOICES[data.voice] ?? data.voice.toLowerCase();
+      const response = await fetch(`${GATEWAY}/audio/speech`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: process.env["AI_TTS_MODEL"]?.trim() || "gpt-4o-mini-tts",
+          input: data.text,
+          voice,
+          instructions: "Read this aloud as a warm, expressive children's storyteller.",
+          response_format: "mp3",
+        }),
+        signal: AbortSignal.timeout(90_000),
+      });
+      if (!response.ok) throw await gatewayError(response);
+      const mime = response.headers.get("content-type")?.split(";")[0] || "audio/mpeg";
+      if (!mime.startsWith("audio/")) throw new Error("The primary narration service returned an invalid audio format.");
+      return { b64: Buffer.from(await response.arrayBuffer()).toString("base64"), mime };
+    } catch {
+      console.warn("Primary narration unavailable; trying the configured Pollinations backup.");
+    }
+    return generatePollinationsSpeech(data.text, data.voice);
   });
 
 function elevenLabsKey() {
