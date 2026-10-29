@@ -62,9 +62,10 @@ type CreationCard = {
   title: string;
   body: string;
   tone: string;
-  image: string;
+  image?: string;
+  preview?: "comic" | "bilingual";
   cta: string;
-  to?: "/stories/new" | "/voices" | "/characters" | "/labs" | "/world";
+  to?: "/stories" | "/stories/new" | "/voices" | "/characters" | "/labs" | "/world";
   onClick?: () => void;
 };
 
@@ -95,9 +96,19 @@ const CREATION_CARDS: CreationCard[] = [
     title: "Reframe pages as a comic",
     body: "Build panel-by-panel story beats from the same manuscript, approved characters, and chosen art direction.",
     tone: "from-rose-50 to-fuchsia-100/70",
-    image: ebookStudioThumb,
+    preview: "comic",
     cta: "Open a story to make panels",
     to: "/stories/new",
+  },
+  {
+    icon: BookOpenText,
+    eyebrow: "Bilingual edition",
+    title: "Keep both languages on the page",
+    body: "Add a reviewed translation beside the original text, then switch on the side-by-side reader when the page is ready.",
+    tone: "from-teal-50 to-cyan-100/70",
+    preview: "bilingual",
+    cta: "Open your story library",
+    to: "/stories",
   },
   {
     icon: Video,
@@ -300,16 +311,42 @@ function CreateHub() {
           <p className="max-w-md text-right text-sm leading-6 text-muted-foreground">Each lane has a clear artifact, review state and next production step.</p>
         </div>
         <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {CREATION_CARDS.map(({ icon: Icon, eyebrow, title, body, tone, image, cta, to, onClick }) => (
+          {CREATION_CARDS.map(({ icon: Icon, eyebrow, title, body, tone, image, preview, cta, to, onClick }) => (
             <article key={title} className={`group flex min-h-[330px] flex-col overflow-hidden rounded-2xl border bg-gradient-to-br ${tone} shadow-soft transition duration-200 hover:-translate-y-1 hover:shadow-lg`}>
               <div className="relative h-36 overflow-hidden bg-primary/10">
-                <img src={image} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+                {preview === "comic" ? (
+                  <div aria-hidden="true" className="grid h-full grid-cols-[1.15fr_0.85fr] gap-2 bg-[#f2e8d9] p-2.5">
+                    <div className="relative overflow-hidden rounded-xl border-[3px] border-[#183e43] bg-white shadow-sm">
+                      <img src={ebookStudioThumb} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+                      <span className="absolute bottom-1.5 left-1.5 rounded bg-white/90 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#183e43]">01 · Establish</span>
+                    </div>
+                    <div className="grid grid-rows-2 gap-2">
+                      <div className="flex items-end rounded-xl border-[3px] border-[#183e43] bg-[#dcebed] p-2 text-[9px] font-bold uppercase tracking-wider text-[#183e43]">02 · The choice</div>
+                      <div className="flex items-end rounded-xl border-[3px] border-[#183e43] bg-[#f6cc78] p-2 text-[9px] font-bold uppercase tracking-wider text-[#183e43]">03 · The reveal</div>
+                    </div>
+                  </div>
+                ) : preview === "bilingual" ? (
+                  <div aria-hidden="true" className="grid h-full grid-cols-2 gap-px bg-[#c6d8d4] p-2.5">
+                    <div className="rounded-l-xl bg-[#fffdf8] p-3">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#17605d]">English</p>
+                      <p className="mt-2 font-serif text-[12px] leading-4 text-[#263b3d]">The moon left a little light beside the door.</p>
+                      <span className="mt-2 block h-1 w-10 rounded bg-[#d5e6df]" />
+                    </div>
+                    <div className="rounded-r-xl bg-[#fffdf8] p-3">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#17605d]">Français</p>
+                      <p className="mt-2 font-serif text-[12px] leading-4 text-[#263b3d]">La lune laissa un peu de lumière près de la porte.</p>
+                      <span className="mt-2 block h-1 w-8 rounded bg-[#d5e6df]" />
+                    </div>
+                  </div>
+                ) : (
+                  <img src={image} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+                )}
+                {!preview && <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />}
               </div>
               <div className="flex flex-1 flex-col p-6">
               <div className="flex items-start justify-between gap-4">
                 <span className="grid h-11 w-11 place-items-center rounded-xl bg-white/75 text-primary shadow-sm"><Icon className="h-5 w-5" /></span>
-                <span className="rounded-full bg-white/65 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/60">Story format</span>
+                <span className="rounded-full bg-white/65 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/60">Studio preview</span>
               </div>
               <p className="mt-7 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary/75">{eyebrow}</p>
               <h3 className="mt-2 text-xl font-semibold text-foreground">{title}</h3>

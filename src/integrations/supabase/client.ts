@@ -46,7 +46,7 @@ function createSupabaseClient() {
       ...(!SUPABASE_URL ? ["SUPABASE_URL"] : []),
       ...(!SUPABASE_PUBLISHABLE_KEY ? ["SUPABASE_PUBLISHABLE_KEY"] : []),
     ];
-    const message = `CyliaTales cannot start Supabase Auth: missing ${missing.join(", ")}. Add the publishable key for project nfefwcmklegldwfjrtku.`;
+    const message = `CyliaTales cannot start Supabase Auth: missing ${missing.join(", ")}. Add the publishable key for project rrtgokjzhotddlbjaqep.`;
     console.error(`[Supabase] ${message}`);
     throw new Error(message);
   }
