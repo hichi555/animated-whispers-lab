@@ -98,6 +98,24 @@ test("art-direction and comic templates are real selectable production settings"
   assert.match(comicStudio, /COMIC_PANEL_COUNTS/);
 });
 
+test("comic identity controls use approved anchors and narration is saved independently per page", () => {
+  const comic = read("src/components/StoryComicStudio.tsx");
+  const migration = read("supabase/migrations/20261030000000_comic_narration_script.sql");
+  const types = read("src/integrations/supabase/types.ts");
+  assert.match(comic, /from\("character_locks"\)/);
+  assert.match(comic, /\.eq\("status", "approved"\)/);
+  assert.match(comic, /reference_paths/);
+  assert.match(comic, /Identity lock/);
+  assert.match(comic, /Expressive acting/);
+  assert.match(comic, /from\("voice_profiles"\)/);
+  assert.match(comic, /\.eq\("consent_confirmed", true\)/);
+  assert.match(comic, /narration_script: text, narration_voice: narrationVoice/);
+  assert.match(migration, /add column if not exists narration_script text/);
+  assert.match(migration, /add column if not exists narration_voice text/);
+  assert.match(types, /narration_script: string \| null/);
+  assert.match(types, /narration_voice: string \| null/);
+});
+
 test("server provider routing prefers Groq for text and Cloudflare then Pollinations for images", async () => {
   const names = [
     "AI_TEXT_PROVIDER",
@@ -237,6 +255,42 @@ test("Pollinations narration uses authenticated server-side Gemini TTS and retur
     });
     assert.equal(audio.mime, "audio/wav");
     assert.equal(Buffer.from(audio.b64, "base64").length, 4);
+  } finally {
+    globalThis.fetch = originalFetch;
+    for (const [name, value] of prior) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+  }
+});
+
+test("Cloudflare narration maps supported speakers and selects multilingual MeloTTS when needed", async () => {
+  const names = ["CLOUDFLARE_AI_ACCOUNT_ID", "CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_AI_API_TOKEN", "CLOUDFLARE_API_TOKEN", "CLOUDFLARE_API_KEY", "CLOUDFLARE_AI_TTS_MODEL"];
+  const prior = new Map(names.map((name) => [name, process.env[name]]));
+  const originalFetch = globalThis.fetch;
+  try {
+    for (const name of names) delete process.env[name];
+    process.env.CLOUDFLARE_AI_ACCOUNT_ID = "test-account";
+    process.env.CLOUDFLARE_AI_API_TOKEN = "cfut_test_secret_0123456789";
+    const calls: Array<{ url: string; body: Record<string, unknown>; authorization: string }> = [];
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      calls.push({
+        url: String(input),
+        body: JSON.parse(String(init?.body)) as Record<string, unknown>,
+        authorization: new Headers(init?.headers).get("authorization") ?? "",
+      });
+      return new Response(new Uint8Array(700).fill(7), { status: 200, headers: { "content-type": "audio/mpeg" } });
+    }) as typeof fetch;
+    const { generateCloudflareSpeech } = await import("../src/lib/ai-gateway.server.ts");
+    const english = await generateCloudflareSpeech("Tavi found the lantern.", "Wren", "English");
+    const spanish = await generateCloudflareSpeech("Tavi encontró la linterna.", "Kore", "Spanish");
+    assert.match(calls[0].url, /@cf\/deepgram\/aura-2-en$/);
+    assert.deepEqual(calls[0].body, { text: "Tavi found the lantern.", speaker: "luna", encoding: "mp3" });
+    assert.equal(calls[0].authorization, "Bearer cfut_test_secret_0123456789");
+    assert.match(calls[1].url, /@cf\/myshell-ai\/melotts$/);
+    assert.deepEqual(calls[1].body, { prompt: "Tavi encontró la linterna.", lang: "es" });
+    assert.equal(english.mime, "audio/mpeg");
+    assert.equal(Buffer.from(spanish.b64, "base64").length, 700);
   } finally {
     globalThis.fetch = originalFetch;
     for (const [name, value] of prior) {

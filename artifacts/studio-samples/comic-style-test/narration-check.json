@@ -1,0 +1,10 @@
+{
+  "provider": "Cloudflare Workers AI Aura-2",
+  "selectedVoice": "Wren (mapped to supported speaker)",
+  "language": "English",
+  "status": "passed",
+  "mime": "audio/mpeg",
+  "outputBytes": 24768,
+  "latencyMs": 3671,
+  "audioFile": "narration-wren.mp3"
+}

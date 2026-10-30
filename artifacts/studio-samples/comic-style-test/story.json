@@ -1,0 +1,26 @@
+{
+  "title": "Tavi and the Lantern's Light",
+  "pages": [
+    {
+      "text": "After the rain, little fox Tavi finds a warm, brass lantern beneath the old woodland bridge.",
+      "imagePrompt": "A gentle forest scene after rain, a small orange fox with bright eyes peeking under a mossy stone bridge, a shiny brass lantern half buried in soft mud, droplets glistening, soft pastel colors."
+    },
+    {
+      "text": "Tavi meets shy hedgehog Moss, who whispers that the lantern belongs to the night gardener who tends the moonflowers.",
+      "imagePrompt": "A cute hedgehog with tiny glasses shyly emerging near the lantern, the fox listening, moonflowers glowing faintly nearby, twilight sky, warm glow from lantern."
+    },
+    {
+      "text": "Together they carry the lantern through the glowing meadow, placing it on the garden’s stone pedestal.",
+      "imagePrompt": "Fox and hedgehog walking side by side across a meadow of moonflowers, the brass lantern held gently, a stone pedestal in the distance, soft lantern light illuminating path, gentle dusk."
+    },
+    {
+      "text": "The night gardener thanks them, and the lantern’s light shines bright, lighting the garden for all forest friends.",
+      "imagePrompt": "A kind night gardener, a tall figure in a flowing cloak, receiving the lantern on a stone pedestal, lantern glowing warmly, forest animals gathered, stars twinkling, peaceful scene."
+    }
+  ],
+  "providers": {
+    "text": "groq",
+    "image": "cloudflare"
+  },
+  "generatedAt": "2026-10-30T01:51:07.150Z"
+}

@@ -245,6 +245,8 @@ export type Database = {
           motion_prompt: string | null;
           motion_status: string;
           motion_url: string | null;
+          narration_script: string | null;
+          narration_voice: string | null;
           page_number: number;
           pacing: string;
           shot_type: string;
@@ -274,6 +276,8 @@ export type Database = {
           motion_prompt?: string | null;
           motion_status?: string;
           motion_url?: string | null;
+          narration_script?: string | null;
+          narration_voice?: string | null;
           page_number: number;
           pacing?: string;
           shot_type?: string;
@@ -303,6 +307,8 @@ export type Database = {
           motion_prompt?: string | null;
           motion_status?: string;
           motion_url?: string | null;
+          narration_script?: string | null;
+          narration_voice?: string | null;
           page_number?: number;
           pacing?: string;
           shot_type?: string;

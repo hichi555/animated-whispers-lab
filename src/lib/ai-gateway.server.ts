@@ -257,6 +257,60 @@ export async function generatePollinationsSpeech(text: string, voice: string) {
   return { b64, mime };
 }
 
+const CLOUDFLARE_AURA_VOICES: Record<string, string> = {
+  Wren: "luna", Kore: "luna", Charon: "atlas", Aoede: "athena", Puck: "apollo",
+  Leda: "cora", Fenrir: "orion", Achernar: "hera", Orus: "odysseus",
+};
+
+function meloLanguageCode(language: string) {
+  const normalized = language.toLowerCase().split(/[-(]/)[0]?.trim() ?? "english";
+  const codes: Record<string, string> = {
+    english: "en", french: "fr", spanish: "es", chinese: "zh", mandarin: "zh",
+    japanese: "ja", korean: "ko", german: "de", italian: "it", portuguese: "pt",
+    russian: "ru", hindi: "hi", arabic: "ar",
+  };
+  return codes[normalized] ?? "en";
+}
+
+export async function generateCloudflareSpeech(text: string, voice: string, language = "English") {
+  const accountId = cloudflareAccountId();
+  const key = cloudflareToken();
+  if (!accountId || !key) throw new Error("Cloudflare Workers AI narration is not configured.");
+  const lang = meloLanguageCode(language);
+  const model = process.env["CLOUDFLARE_AI_TTS_MODEL"]?.trim() ||
+    (lang === "en" ? "@cf/deepgram/aura-2-en" : "@cf/myshell-ai/melotts");
+  const multilingualModel = model.includes("melotts");
+  const speaker = CLOUDFLARE_AURA_VOICES[voice] ?? "luna";
+  const response = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify(multilingualModel
+        ? { prompt: text, lang }
+        : { text, speaker, encoding: "mp3" }),
+      signal: AbortSignal.timeout(120_000),
+    },
+  );
+  if (!response.ok) throw await gatewayError(response);
+  const contentType = response.headers.get("content-type")?.split(";")[0]?.toLowerCase() ?? "";
+  let bytes = Buffer.from(await response.arrayBuffer());
+  const mime = contentType.startsWith("audio/") ? contentType : "audio/mpeg";
+  if (contentType.includes("json")) {
+    let payload: { result?: { audio?: string | number[] } | string; audio?: string | number[] };
+    try { payload = JSON.parse(bytes.toString("utf8")) as typeof payload; }
+    catch { throw new Error("Cloudflare Workers AI returned an invalid narration payload."); }
+    const encoded = typeof payload.result === "object" && payload.result !== null
+      ? payload.result.audio
+      : typeof payload.result === "string" ? payload.result : payload.audio;
+    if (typeof encoded === "string") bytes = Buffer.from(encoded, "base64");
+    else if (Array.isArray(encoded)) bytes = Buffer.from(encoded);
+    else throw new Error("Cloudflare Workers AI returned no audio data.");
+  }
+  if (bytes.length < 512) throw new Error("Cloudflare Workers AI returned an empty narration.");
+  return { b64: bytes.toString("base64"), mime };
+}
+
 export async function gatewayError(res: Response) {
   const body = await res.text();
   let msg = body;

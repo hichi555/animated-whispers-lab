@@ -376,10 +376,12 @@ const OPENAI_TTS_VOICES: Record<string, string> = {
 export const narrate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({ text: z.string().min(1).max(3000), voice: z.string() }).parse(d),
+    z.object({ text: z.string().min(1).max(3000), voice: z.string(), language: z.string().trim().min(2).max(60).optional() }).parse(d),
   )
   .handler(async ({ data }) => {
-    const { requireKey, GATEWAY, gatewayError, generatePollinationsSpeech } = await import("./ai-gateway.server");
+    const { requireKey, GATEWAY, gatewayError, generateCloudflareSpeech, generatePollinationsSpeech } = await import("./ai-gateway.server");
+    const language = data.language ?? "English";
+    const failures: string[] = [];
     try {
       const key = requireKey();
       const voice = OPENAI_TTS_VOICES[data.voice] ?? data.voice.toLowerCase();
@@ -390,7 +392,7 @@ export const narrate = createServerFn({ method: "POST" })
           model: process.env["AI_TTS_MODEL"]?.trim() || "gpt-4o-mini-tts",
           input: data.text,
           voice,
-          instructions: "Read this aloud as a warm, expressive children's storyteller.",
+          instructions: `Read this aloud as a warm, expressive children's storyteller in ${language}.`,
           response_format: "mp3",
         }),
         signal: AbortSignal.timeout(90_000),
@@ -399,10 +401,21 @@ export const narrate = createServerFn({ method: "POST" })
       const mime = response.headers.get("content-type")?.split(";")[0] || "audio/mpeg";
       if (!mime.startsWith("audio/")) throw new Error("The primary narration service returned an invalid audio format.");
       return { b64: Buffer.from(await response.arrayBuffer()).toString("base64"), mime };
-    } catch {
-      console.warn("Primary narration unavailable; trying the configured Pollinations backup.");
+    } catch (error) {
+      failures.push(`Primary narration: ${(error as Error).message.slice(0, 160)}`);
+      console.warn("Primary narration unavailable; trying Cloudflare Workers AI.");
     }
-    return generatePollinationsSpeech(data.text, data.voice);
+    try {
+      return await generateCloudflareSpeech(data.text, data.voice, language);
+    } catch (error) {
+      failures.push(`Cloudflare Workers AI: ${(error as Error).message.slice(0, 160)}`);
+      console.warn("Cloudflare narration unavailable; trying the Pollinations backup.");
+    }
+    try {
+      return await generatePollinationsSpeech(data.text, data.voice);
+    } catch (error) {
+      throw new Error(`Narration could not be rendered. ${failures.join(" ")} Pollinations backup: ${(error as Error).message.slice(0, 160)}`);
+    }
   });
 
 function elevenLabsKey() {
