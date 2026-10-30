@@ -82,6 +82,7 @@ function NewStory() {
   const [tone, setTone] = useState<string | null>("Cozy");
   const [style, setStyle] = useState<string>(ART_STYLES[0].id);
   const [directionId, setDirectionId] = useState<string | null>(ART_DIRECTION_BOARDS[0].id);
+  const [artDirectionNotes, setArtDirectionNotes] = useState("");
   const [voice, setVoice] = useState<string>(VOICES[0].id);
   const [voiceProfileId, setVoiceProfileId] = useState<string | null>(null);
   const [pages, setPages] = useState(8);
@@ -100,6 +101,7 @@ function NewStory() {
       const prefs = JSON.parse(raw) as {
         readingAge?: string; language?: string; bilingual?: boolean;
         translationLanguage?: string; defaultPages?: string; artDirection?: string;
+        artDirectionNotes?: string;
       };
       if (prefs.readingAge && AGE_RANGES.some((item) => item.id === prefs.readingAge)) setAge(prefs.readingAge);
       if (prefs.language && STORY_LANGUAGES.some((item) => item === prefs.language)) setLanguage(prefs.language as (typeof STORY_LANGUAGES)[number]);
@@ -114,6 +116,7 @@ function NewStory() {
       if ([8, 12, 16].includes(preferredPages)) setPages(preferredPages);
       const board = ART_DIRECTION_BOARDS.find((item) => item.id === prefs.artDirection);
       if (board) { setDirectionId(board.id); setStyle(board.name); }
+      if (typeof prefs.artDirectionNotes === "string") setArtDirectionNotes(prefs.artDirectionNotes.slice(0, 500));
     } catch {
       toast.error("Saved studio defaults could not be applied; the standard creation settings are ready.");
     }
@@ -160,9 +163,12 @@ function NewStory() {
             translationLanguage: bilingual ? translationLanguage : null,
             theme,
             tone,
-            artStyle: directionId
-              ? `${ART_DIRECTION_BOARDS.find((board) => board.id === directionId)?.name}: ${ART_DIRECTION_BOARDS.find((board) => board.id === directionId)?.prompt}`
-              : style,
+            artStyle: [
+              directionId
+                ? `${ART_DIRECTION_BOARDS.find((board) => board.id === directionId)?.name}: ${ART_DIRECTION_BOARDS.find((board) => board.id === directionId)?.prompt}`
+                : style,
+              artDirectionNotes.trim() && `Creator art-direction notes: ${artDirectionNotes.trim()}`,
+            ].filter(Boolean).join("\n"),
             pages,
             characters: picked.map((c) => ({
               name: c.name,
@@ -197,7 +203,7 @@ function NewStory() {
           art_style: style,
           art_direction_id: directionId,
           art_direction_prompt: directionId
-            ? (ART_DIRECTION_BOARDS.find((board) => board.id === directionId)?.prompt ?? null)
+            ? [ART_DIRECTION_BOARDS.find((board) => board.id === directionId)?.prompt, artDirectionNotes.trim() || null].filter(Boolean).join("\n")
             : null,
           voice,
           voice_profile_id: voiceProfileId,
@@ -391,6 +397,18 @@ function NewStory() {
               if (board) setStyle(board.name);
             }}
           />
+          <label className="mt-5 block space-y-2 text-sm font-semibold">
+            <span>Make this art direction your own</span>
+            <Textarea
+              value={artDirectionNotes}
+              onChange={(event) => setArtDirectionNotes(event.target.value.slice(0, 500))}
+              maxLength={500}
+              rows={3}
+              placeholder="Add concrete details such as time of day, material texture, lighting or composition…"
+              aria-label="Custom art direction notes"
+            />
+            <span className="block text-xs font-normal text-muted-foreground">These notes are combined with the selected style and kept with the story for consistent illustration prompts. {artDirectionNotes.length}/500</span>
+          </label>
           <div className="mt-6 border-t pt-6">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Or use a foundational medium

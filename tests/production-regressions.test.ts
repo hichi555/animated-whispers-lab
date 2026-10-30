@@ -83,6 +83,21 @@ test("saved language defaults drive bilingual generation and persist on stories 
   assert.match(types, /language: string/);
 });
 
+test("art-direction and comic templates are real selectable production settings", () => {
+  const boards = read("src/lib/art-direction.ts");
+  const templates = read("src/lib/comic-templates.ts");
+  const settings = read("src/routes/_authenticated/settings.tsx");
+  const comicStudio = read("src/components/StoryComicStudio.tsx");
+  for (const id of ["paper-theatre", "woodland-blockprint", "terracotta-dreams", "midnight-inkgarden"])
+    assert.match(boards, new RegExp(`id: \\"${id}\\"`));
+  for (const id of ["cinematic", "manga-rhythm", "storybook-panels", "adventure-strip"])
+    assert.match(templates, new RegExp(`id: \\"${id}\\"`));
+  assert.match(settings, /artDirectionNotes/);
+  assert.match(settings, /comicPanelCount/);
+  assert.match(comicStudio, /This is panel \$\{i\} of \$\{panelCount\}/);
+  assert.match(comicStudio, /COMIC_PANEL_COUNTS/);
+});
+
 test("server provider routing prefers Groq for text and Cloudflare then Pollinations for images", async () => {
   const names = [
     "AI_TEXT_PROVIDER",

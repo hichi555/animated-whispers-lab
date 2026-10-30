@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/use-auth";
 import { ART_DIRECTION_BOARDS } from "@/lib/art-direction";
+import { COMIC_PANEL_COUNTS, COMIC_TEMPLATES, DEFAULT_COMIC_TEMPLATE, type ComicTemplateId } from "@/lib/comic-templates";
 import { getStudioProviderStatus } from "@/lib/studio.functions";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -50,6 +51,9 @@ type Preferences = {
   reviewBeforeProduction: boolean;
   defaultPages: "8" | "12" | "16";
   artDirection: string;
+  artDirectionNotes: string;
+  comicTemplate: ComicTemplateId;
+  comicPanelCount: "2" | "3" | "4" | "6";
 };
 const DEFAULTS: Preferences = {
   readingAge: "5-7",
@@ -64,6 +68,9 @@ const DEFAULTS: Preferences = {
   reviewBeforeProduction: true,
   defaultPages: "12",
   artDirection: ART_DIRECTION_BOARDS[0].id,
+  artDirectionNotes: "",
+  comicTemplate: DEFAULT_COMIC_TEMPLATE,
+  comicPanelCount: "3",
 };
 const STORAGE_KEY = "cyliatales.preferences.v1";
 
@@ -334,7 +341,45 @@ function SettingsPage() {
                   ))}
                 </select>
               </label>
+              <label className="settings-field">
+                <span>Comic page template</span>
+                <select
+                  value={preferences.comicTemplate}
+                  onChange={(e) => {
+                    const next = COMIC_TEMPLATES.find((item) => item.id === e.target.value);
+                    if (!next) return;
+                    update("comicTemplate", next.id);
+                    update("comicPanelCount", String(next.panelCount) as Preferences["comicPanelCount"]);
+                  }}
+                >
+                  {COMIC_TEMPLATES.map((template) => (
+                    <option key={template.id} value={template.id}>{template.name} · {template.panelCount} panels</option>
+                  ))}
+                </select>
+              </label>
+              <label className="settings-field">
+                <span>Default panel count</span>
+                <select
+                  value={preferences.comicPanelCount}
+                  onChange={(e) => update("comicPanelCount", e.target.value as Preferences["comicPanelCount"])}
+                >
+                  {COMIC_PANEL_COUNTS.map((count) => (
+                    <option key={count} value={count}>{count} panels per page</option>
+                  ))}
+                </select>
+              </label>
             </div>
+            <label className="settings-field mt-5 block">
+              <span>Art-direction notes · optional</span>
+              <textarea
+                value={preferences.artDirectionNotes}
+                onChange={(e) => update("artDirectionNotes", e.target.value.slice(0, 500))}
+                maxLength={500}
+                rows={3}
+                placeholder="For example: soft backlight, hand-painted texture, wide quiet backgrounds…"
+              />
+              <span className="mt-1 block text-xs font-normal text-muted-foreground">Added to the chosen art board for future image prompts; keep notes concrete and family-friendly. {preferences.artDirectionNotes.length}/500</span>
+            </label>
             <div className="mt-2">
               <SettingRow
                 icon={Check}
@@ -391,6 +436,16 @@ function SettingsPage() {
               <span className="text-muted-foreground">Book length</span>
               <strong>{preferences.defaultPages} pages</strong>
             </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-muted-foreground">Comic template</span>
+              <strong className="text-right">{COMIC_TEMPLATES.find((item) => item.id === preferences.comicTemplate)?.name ?? "Cinematic sequence"} · {preferences.comicPanelCount} panels</strong>
+            </div>
+            {preferences.artDirectionNotes.trim() && (
+              <div className="border-t pt-3">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Custom art notes</span>
+                <p className="mt-1 line-clamp-3 text-sm">{preferences.artDirectionNotes}</p>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Privacy</span>
               <strong>{preferences.privateByDefault ? "Private" : "Share-ready"}</strong>

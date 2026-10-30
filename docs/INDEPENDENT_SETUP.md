@@ -1,6 +1,6 @@
 # Run CyliaTales independently
 
-CyliaTales is a React + TanStack Start app. Lovable is not required to run the app after the independent-build changes in this branch. The app still uses Supabase for authentication, database access and private media storage; Supabase is a separate backend service that you own and configure.
+CyliaTales is a React + TanStack Start app that can be developed and deployed independently. It uses Supabase for authentication, database access and private media storage; Supabase is a separate backend service that you configure for your deployment.
 
 ## 1. Local environment
 
@@ -25,7 +25,7 @@ npm run dev
 
 ## 2. Google sign-in
 
-Google OAuth now uses Supabase directly; it no longer calls Lovable's OAuth broker.
+Google OAuth uses Supabase directly.
 
 1. In Google Cloud Console, create or select a project and configure the OAuth consent screen.
 2. Create an OAuth Client ID of type **Web application**.

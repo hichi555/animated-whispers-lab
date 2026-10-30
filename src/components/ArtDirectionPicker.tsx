@@ -22,7 +22,7 @@ export function ArtDirectionPicker({
             aria-pressed={active}
             onClick={() => onSelect(board.id)}
             className={cn(
-              "h-auto overflow-hidden rounded-2xl border p-0 text-left flex-col items-stretch gap-0",
+              "group h-auto overflow-hidden rounded-2xl border p-0 text-left flex-col items-stretch gap-0",
               active
                 ? "border-primary bg-primary/10 ring-2 ring-primary/20"
                 : "bg-card hover:bg-secondary",
