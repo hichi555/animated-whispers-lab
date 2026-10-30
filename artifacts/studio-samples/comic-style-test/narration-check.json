@@ -4,7 +4,13 @@
   "language": "English",
   "status": "passed",
   "mime": "audio/mpeg",
+  "codec": "mp3",
+  "sampleRateHz": 24000,
+  "channels": 1,
+  "durationSeconds": 4.128,
   "outputBytes": 24768,
   "latencyMs": 3671,
+  "transcriptionCheck": "passed",
+  "transcriptionFile": "narration-transcript.txt",
   "audioFile": "narration-wren.mp3"
 }

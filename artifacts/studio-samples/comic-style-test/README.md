@@ -20,7 +20,7 @@ The night gardener thanks them, and the lantern’s light shines bright, lightin
 
 ## Narration check
 
-[Listen to the live Cloudflare Aura-2 narration sample](narration-wren.mp3). This short English line was rendered through the new server-side Cloudflare fallback as a 4.13-second, mono 24 kHz MP3; automated transcription recovered the intended sentence. [Sanitized check details](narration-check.json).
+[Listen to the live Cloudflare Aura-2 narration sample](narration-wren.mp3). This short English line was rendered through the new server-side Cloudflare fallback as a 4.13-second, mono 24 kHz MP3; automated transcription recovered the intended sentence in the [transcript](narration-transcript.txt). [Sanitized check details](narration-check.json).
 
 ## Style comparison
 
